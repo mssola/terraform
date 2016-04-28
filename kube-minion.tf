@@ -1,5 +1,5 @@
 resource "openstack_compute_instance_v2" "kube-minion" {
-  name = "kube-minion${count.index}"
+  name = "${var.cluster-prefix}kube-minion${count.index}"
   image_name = "openSUSE-Leap-42.1-OpenStack"
   flavor_name = "m1.small"
   key_pair = "docker"

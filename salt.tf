@@ -7,7 +7,7 @@ output "salt-fip" {
 }
 
 resource "openstack_compute_instance_v2" "salt" {
-  name = "k8s-salt"
+  name = "${var.cluster-prefix}kube-salt"
   image_name = "openSUSE-Leap-42.1-OpenStack"
   flavor_name = "m1.small"
   key_pair = "docker"

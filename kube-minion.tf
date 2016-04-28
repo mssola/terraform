@@ -3,7 +3,7 @@ resource "openstack_compute_instance_v2" "kube-minion" {
   image_name = "openSUSE-Leap-42.1-OpenStack"
   flavor_name = "m1.small"
   key_pair = "docker"
-  count = 3
+  count = "${var.kube-minions-size}"
 
   network = {
     name = "fixed"

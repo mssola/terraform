@@ -3,7 +3,7 @@ resource "openstack_compute_instance_v2" "etcd" {
   image_name = "openSUSE-Leap-42.1-OpenStack"
   flavor_name = "m1.small"
   key_pair = "docker"
-  count = 3
+  count = "${var.etcd-cluster-size}"
 
   network = {
     name = "fixed"

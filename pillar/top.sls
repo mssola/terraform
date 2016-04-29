@@ -7,3 +7,5 @@ base:
     - kube-master
   'G@roles:kube-minion':
     - kube-minion
+  'G@roles:nfs':
+    - nfs

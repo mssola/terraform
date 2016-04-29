@@ -107,3 +107,17 @@ For example:
 $ kubectl -s http://`terraform output kube-master-fip`:8080 get pods
 ```
 
+There's however a more convenient way to use `kubelet`, we can use a dedicated
+profile for this cluster. You can read
+[here](https://coreos.com/kubernetes/docs/latest/configure-kubectl.html) how
+it's possible to configure kubelet.
+
+Inside of this project there's a `.envrc` file. This is a shell profile that
+can be automatically be loaded by [direnv](http://direnv.net/). Once you install
+`direnv` you won't have to type anything, just enter the directory and start
+using `kubectl` without any special parameter.
+
+You can install direnv from the [utilities](https://build.opensuse.org/package/show/utilities/direnv)
+project. Note well, you will need to have `terraform` installed in order to
+get everything working.
+

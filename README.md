@@ -80,6 +80,18 @@ $ terraform apply # apply the operations
 If you make changes to the default infrastructure you are encouraged to commit
 the `terraform.tfstate` and `terraform.tfstate.backup` to git.
 
+### Generating the cluster root CA
+
+You must generate the root CA the first time you provision the cluster.
+You can do it with:
+
+```
+openssl genrsa -out salt/certs/kube-ca.key 2048
+openssl req -x509 -new -nodes \
+   -key salt/certs/kube-ca.key -days 10000 \
+   -out salt/certs/kube-ca.crt -subj \"/CN=kube-ca/O=SUSE\"
+```                       
+
 ### Running salt orchestrator
 
 Once all the virtual machines are up and running it's time to configure them.

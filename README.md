@@ -80,17 +80,15 @@ $ terraform apply # apply the operations
 If you make changes to the default infrastructure you are encouraged to commit
 the `terraform.tfstate` and `terraform.tfstate.backup` to git.
 
-### Generating the cluster root CA
+### Generating the certificates
 
-You must generate the root CA the first time you provision the cluster.
-You can do it with:
+You must generate certificates for your Kubernetes components in order to
+use secure connections. You can run the certificates generation script
+in the Salt master with:
 
-```
-openssl genrsa -out salt/certs/kube-ca.key 2048
-openssl req -x509 -new -nodes \
-   -key salt/certs/kube-ca.key -days 10000 \
-   -out salt/certs/kube-ca.crt -subj \"/CN=kube-ca/O=SUSE\"
-```                       
+    $ ssh -i ssh/id_docker root@`terraform output salt-fip` /srv/salt/certs/certs.sh --all
+
+This will generate certificates for the root CA, API server and all the minions.
 
 ### Running salt orchestrator
 

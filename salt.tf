@@ -44,6 +44,13 @@ resource "openstack_compute_instance_v2" "salt" {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+  provisioner "file" {
+    source = "salt-conf"
+    destination = "/etc/salt/master.d"
+    connection {
+      private_key = "${file("ssh/id_docker")}"
+    }
+  }
   provisioner "remote-exec" {
     inline = [
       "chmod 600 /root/.ssh/id_rsa"

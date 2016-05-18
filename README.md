@@ -90,7 +90,11 @@ in the Salt master with:
 
     $ ssh -i ssh/id_docker root@`terraform output salt-fip` /srv/salt/certs/certs.sh
 
-This will generate certificates for the root CA, API server and all the minions.
+This will prepare the following certificates (that Salt will provision in
+`/etc/kubernetes/ssl/kube-ca`):
+
+- for each API server: the `ca.crt`, `apisserver.crt` and `apiserver.key`
+- for each minion: the `ca.crt`, `minion.crt` and `minion.key`
 
 #### Generating the certificates manually
 

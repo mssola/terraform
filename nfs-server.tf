@@ -5,7 +5,7 @@
 #}
 
 resource "openstack_compute_instance_v2" "kube_nfs" {
-  name = "${var.cluster-prefix}kube-nfs-storage"
+  name = "${var.cluster_prefix}kube-nfs-storage"
   image_name = "openSUSE-Leap-42.1-OpenStack"
   flavor_name = "m1.small"
   key_pair = "docker"

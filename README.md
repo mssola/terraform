@@ -39,18 +39,18 @@ By default all the VMs provisioned by terraform are going to be named in the
 same way (eg: `kube-master`, `etcd1`, `etcd2`,...). This makes impossible for
 multiple people to deploy a kubernetes cluster on the same cloud.
 
-This can be solved by setting the `cluster-prefix` variable to something like
+This can be solved by setting the `cluster_prefix` variable to something like
 `flavio-`.
 
 ### Configuring the size of the etcd cluster
 
 By default the etcd cluster is composed by 3 nodes. However it's possible to
-change the default value by using the `etcd-cluster-size` variable.
+change the default value by using the `etcd_cluster_size` variable.
 
 ### Configuring the number of k8s minions
 
 By default the k8s cluster has 3 k8s minions. However it's possible to
-change the default value by using the `kube-minions-size` variable.
+change the default value by using the `kube_minions_size` variable.
 
 ## Deploying the cluster
 

@@ -1,2 +1,4 @@
 osrc.sh
 .idea
+*.tfstate
+*.tfstate.backup

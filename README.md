@@ -124,3 +124,13 @@ using `kubectl` without any special parameter.
 You can install direnv from the [utilities](https://build.opensuse.org/package/show/utilities/direnv)
 project. Note well, you will need to have `terraform` installed in order to
 get everything working.
+
+## Project structure
+
+### Managing the salt subtree
+
+You can pull any new changes in the k8s subtree with:
+
+```
+git subtree pull --prefix salt gitlab@gitlab.suse.de:docker/k8s-salt.git   master --squash
+```

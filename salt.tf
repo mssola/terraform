@@ -31,21 +31,29 @@ resource "openstack_compute_instance_v2" "salt" {
     }
   }
   provisioner "file" {
-    source = "salt"
+    source = "salt/salt"
     destination = "/srv"
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
   provisioner "file" {
-    source = "pillar"
+    source = "salt/pillar"
     destination = "/srv"
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir -p /etc/salt/master.d"
+    ]
+    connection {
+      private_key = "${file("ssh/id_docker")}"
+    }
+  }
   provisioner "file" {
-    source = "salt-conf"
+    source = "salt/salt-conf/"
     destination = "/etc/salt/master.d"
     connection {
       private_key = "${file("ssh/id_docker")}"

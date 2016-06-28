@@ -13,3 +13,8 @@ variable "kube_minions_size" {
   default = "3"
   description = "Number of kubernetes minions to create"
 }
+
+variable "openstack_image" {
+  default = "openSUSE-Leap-42.1-OpenStack"
+  description = "The OpenStack image to use"
+}

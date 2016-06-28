@@ -62,19 +62,17 @@ machines via salt.
 
 ### Creating the infrastructure
 
-First of all download your [OpenStack RC file](https://cloud.suse.de/project/access_and_security/api_access/openrc/).
-
-Then load it:
-
+* First of all download your [OpenStack RC v2 file](https://cloud.suse.de/project/access_and_security/api_access/openrc/). Then
+load it with:
 ```
 $ source appliances.rc
 ```
-
-and finally provision the whole infrastructure:
+* Create a new _ssh key_ in the OpenStack dashboard, with key name `docker`.
+* Provision the infrastructure:
 
 ```
-$ terraform plan # see what is going to happen
-$ terraform apply # apply the operations
+$ terraform plan     # see what is going to happen
+$ terraform apply    # apply the operations
 ```
 
 If you make changes to the default infrastructure you are encouraged to commit

@@ -11,45 +11,25 @@ resource "openstack_compute_instance_v2" "kube-minion" {
 
   depends_on = ["openstack_compute_instance_v2.salt"]
 
+  connection {
+    private_key  = "${file("${var.private_key}")}"
+    bastion_host = "${openstack_compute_floatingip_v2.fip_salt.address}"
+  }
+
   provisioner "file" {
     source      = "../bootstrap/salt"
     destination = "/tmp"
-
-    connection {
-      private_key  = "${file("../ssh/id_docker")}"
-      bastion_host = "${openstack_compute_floatingip_v2.fip_salt.address}"
-    }
   }
 
   provisioner "file" {
     source      = "../bootstrap/grains/kube-minion"
     destination = "/tmp/salt/grains"
-
-    connection {
-      private_key  = "${file("../ssh/id_docker")}"
-      bastion_host = "${openstack_compute_floatingip_v2.fip_salt.address}"
-    }
   }
 
   provisioner "remote-exec" {
     inline = [
       "echo \"master: ${openstack_compute_instance_v2.salt.network.0.fixed_ip_v4}\" > /tmp/salt/minion.d/minion.conf ",
-    ]
-
-    connection {
-      private_key  = "${file("../ssh/id_docker")}"
-      bastion_host = "${openstack_compute_floatingip_v2.fip_salt.address}"
-    }
-  }
-
-  provisioner "remote-exec" {
-    inline = [
       "bash /tmp/salt/provision-salt-minion.sh",
     ]
-
-    connection {
-      private_key  = "${file("../ssh/id_docker")}"
-      bastion_host = "${openstack_compute_floatingip_v2.fip_salt.address}"
-    }
   }
 }

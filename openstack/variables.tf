@@ -22,3 +22,8 @@ variable "key_pair" {
   default     = "docker"
   description = "ssh key pair"
 }
+
+variable "private_key" {
+  default     = "../ssh/id_docker"
+  description = "private ssh key file"
+}

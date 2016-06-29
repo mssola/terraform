@@ -19,7 +19,7 @@ Virtualization:containers project.
 Some aspects of the cluster can be configured by using terraform
 variables.
 
-All the variables are defined inside of `variables.tf`.
+All the variables are defined inside of `<provider>/variables.tf`.
 
 There's no need to change the file, you can simply set them using
 environment variables.
@@ -27,7 +27,7 @@ environment variables.
 Examples:
 ```
 $ export TF_VAR_name="value"
-$ terraform <command>
+$ cd <provider> && terraform <command>
 ```
 
 For more information checkout [this](https://www.terraform.io/docs/configuration/variables.html)
@@ -62,21 +62,8 @@ machines via salt.
 
 ### Creating the infrastructure
 
-* First of all download your [OpenStack RC v2 file](https://cloud.suse.de/project/access_and_security/api_access/openrc/). Then
-load it with:
-```
-$ source appliances.rc
-```
-* Create a new _ssh key_ in the OpenStack dashboard, with key name `docker`.
-* Provision the infrastructure:
-
-```
-$ terraform plan     # see what is going to happen
-$ terraform apply    # apply the operations
-```
-
-If you make changes to the default infrastructure you are encouraged to commit
-the `terraform.tfstate` and `terraform.tfstate.backup` to git.
+Follow the instructions for [OpenStack](openstack/README.md) or [libvirt](libvirt/README.md).
+For example, for OpenStack you should `cd openstack && terraform apply`.
 
 ### Certificates
 
@@ -89,12 +76,14 @@ Once all the virtual machines are up and running it's time to configure them.
 We are going to use the [salt orchestration](https://docs.saltstack.com/en/latest/topics/tutorials/states_pt5.html#orchestrate-runner)
 to implement that.
 
-Just execute the following snippet:
+Just execute the following snippet (replacing `<provider>` by the provider you are using):
 
 ```
-# Connect to the remote salt server
-$ ssh -i ssh/id_docker root@`terraform output salt-fip`
-# Execute the orchestrator
+### Connect to the remote salt server
+$ cd <provider> && ssh -i ../ssh/id_docker root@`terraform output salt-fip`
+### Generate the certificates
+# /srv/salt/certs/certs.sh
+### Execute the orchestrator
 # salt-run state.orchestrate orch.kubernetes
 ```
 

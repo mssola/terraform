@@ -7,70 +7,87 @@ output "salt-fip" {
 }
 
 resource "openstack_compute_instance_v2" "salt" {
-  name = "${var.cluster_prefix}kube-salt"
-  image_name = "${var.openstack_image}"
+  name        = "${var.cluster_prefix}kube-salt"
+  image_name  = "${var.openstack_image}"
   flavor_name = "m1.small"
-  key_pair = "docker"
+  key_pair    = "docker"
+
   network = {
-    name = "fixed"
-    floating_ip = "${openstack_compute_floatingip_v2.fip_salt.address}"
+    name           = "fixed"
+    floating_ip    = "${openstack_compute_floatingip_v2.fip_salt.address}"
     access_network = "true"
   }
+
   provisioner "file" {
-    source = "ssh/id_docker"
+    source      = "ssh/id_docker"
     destination = "/root/.ssh/id_rsa"
+
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+
   provisioner "file" {
-    source = "bootstrap/salt"
+    source      = "bootstrap/salt"
     destination = "/tmp"
+
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+
   provisioner "file" {
-    source = "salt/salt"
+    source      = "salt/salt"
     destination = "/srv"
+
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+
   provisioner "file" {
-    source = "salt/pillar"
+    source      = "salt/pillar"
     destination = "/srv"
+
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+
   provisioner "remote-exec" {
     inline = [
-      "mkdir -p /etc/salt/master.d"
+      "mkdir -p /etc/salt/master.d",
     ]
+
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+
   provisioner "file" {
-    source = "salt/salt-conf/"
+    source      = "salt/salt-conf/"
     destination = "/etc/salt/master.d"
+
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+
   provisioner "remote-exec" {
     inline = [
-      "chmod 600 /root/.ssh/id_rsa"
+      "chmod 600 /root/.ssh/id_rsa",
     ]
+
     connection {
       private_key = "${file("ssh/id_docker")}"
     }
   }
+
   provisioner "remote-exec" {
     inline = [
-      "bash /tmp/salt/provision-salt-master.sh"
+      "bash /tmp/salt/provision-salt-master.sh",
     ]
+
     connection {
       private_key = "${file("ssh/id_docker")}"
     }

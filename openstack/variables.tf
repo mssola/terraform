@@ -15,6 +15,6 @@ variable "kube_minions_size" {
 }
 
 variable "openstack_image" {
-  default = "openSUSE-Leap-42.1-OpenStack"
+  default     = "openSUSE-Leap-42.1"
   description = "The OpenStack image to use"
 }

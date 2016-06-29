@@ -10,7 +10,7 @@ resource "openstack_compute_instance_v2" "salt" {
   name        = "${var.cluster_prefix}kube-salt"
   image_name  = "${var.openstack_image}"
   flavor_name = "m1.small"
-  key_pair    = "docker"
+  key_pair    = "${var.key_pair}"
 
   network = {
     name           = "fixed"
@@ -19,38 +19,38 @@ resource "openstack_compute_instance_v2" "salt" {
   }
 
   provisioner "file" {
-    source      = "ssh/id_docker"
+    source      = "../ssh/id_docker"
     destination = "/root/.ssh/id_rsa"
 
     connection {
-      private_key = "${file("ssh/id_docker")}"
+      private_key = "${file("../ssh/id_docker")}"
     }
   }
 
   provisioner "file" {
-    source      = "bootstrap/salt"
+    source      = "../bootstrap/salt"
     destination = "/tmp"
 
     connection {
-      private_key = "${file("ssh/id_docker")}"
+      private_key = "${file("../ssh/id_docker")}"
     }
   }
 
   provisioner "file" {
-    source      = "salt/salt"
+    source      = "../salt/salt"
     destination = "/srv"
 
     connection {
-      private_key = "${file("ssh/id_docker")}"
+      private_key = "${file("../ssh/id_docker")}"
     }
   }
 
   provisioner "file" {
-    source      = "salt/pillar"
+    source      = "../salt/pillar"
     destination = "/srv"
 
     connection {
-      private_key = "${file("ssh/id_docker")}"
+      private_key = "${file("../ssh/id_docker")}"
     }
   }
 
@@ -60,16 +60,16 @@ resource "openstack_compute_instance_v2" "salt" {
     ]
 
     connection {
-      private_key = "${file("ssh/id_docker")}"
+      private_key = "${file("../ssh/id_docker")}"
     }
   }
 
   provisioner "file" {
-    source      = "salt/salt-conf/"
+    source      = "../salt/salt-conf/"
     destination = "/etc/salt/master.d"
 
     connection {
-      private_key = "${file("ssh/id_docker")}"
+      private_key = "${file("../ssh/id_docker")}"
     }
   }
 
@@ -79,7 +79,7 @@ resource "openstack_compute_instance_v2" "salt" {
     ]
 
     connection {
-      private_key = "${file("ssh/id_docker")}"
+      private_key = "${file("../ssh/id_docker")}"
     }
   }
 
@@ -89,7 +89,7 @@ resource "openstack_compute_instance_v2" "salt" {
     ]
 
     connection {
-      private_key = "${file("ssh/id_docker")}"
+      private_key = "${file("../ssh/id_docker")}"
     }
   }
 }

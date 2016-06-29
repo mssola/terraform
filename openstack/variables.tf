@@ -17,3 +17,8 @@ variable "openstack_image" {
   default     = "openSUSE-Leap-42.1"
   description = "The OpenStack image to use"
 }
+
+variable "key_pair" {
+  default     = "docker"
+  description = "ssh key pair"
+}

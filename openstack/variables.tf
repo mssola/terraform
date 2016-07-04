@@ -1,3 +1,8 @@
+# Configuration variables
+#
+# You can override any of these variables from command line by defining `TF_VAR_<the_variable>`
+# For example `TF_VAR_cluster_prefix="alvaro-" terraform apply`
+
 variable "cluster_prefix" {
   default     = ""
   description = "use it to avoid clashes on the same openstack instance - use something like 'flavio-'"

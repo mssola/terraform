@@ -5,7 +5,7 @@ resource "libvirt_volume" "k8s_nfs_volume" {
 }
 
 resource "libvirt_domain" "k8s_nfs" {
-  name = "k8s-nfs"
+  name = "${var.cluster_prefix}k8s-nfs"
 
   disk {
     volume_id = "${libvirt_volume.k8s_nfs_volume.id}"

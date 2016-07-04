@@ -5,7 +5,7 @@ resource "libvirt_volume" "k8s_master_volume" {
 }
 
 resource "libvirt_domain" "k8s_master" {
-  name = "k8s-master"
+  name = "${var.cluster_prefix}k8s-master"
 
   disk {
     volume_id = "${libvirt_volume.k8s_master_volume.id}"

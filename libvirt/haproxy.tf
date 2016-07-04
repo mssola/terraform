@@ -5,7 +5,7 @@ resource "libvirt_volume" "k8s_haproxy_volume" {
 }
 
 resource "libvirt_domain" "k8s_haproxy" {
-  name = "k8s-haproxy"
+  name = "${var.cluster_prefix}k8s-haproxy"
 
   disk {
     volume_id = "${libvirt_volume.k8s_haproxy_volume.id}"

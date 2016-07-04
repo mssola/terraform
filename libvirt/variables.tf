@@ -1,6 +1,11 @@
+variable "libvirt_uri" {
+  default     = "qemu:///system"
+  description = "The libvirt instance"
+}
+
 variable "cluster_prefix" {
   default     = ""
-  description = "use it to avoid clashes on the same openstack instance - use something like 'flavio-'"
+  description = "Use it to avoid clashes on the same libvirt instance - use something like 'flavio-'"
 }
 
 variable "etcd_cluster_size" {

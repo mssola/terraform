@@ -1,5 +1,5 @@
 provider "libvirt" {
-  uri = "qemu:///system"
+  uri = "${var.libvirt_uri}"
 }
 
 resource "libvirt_volume" "salt_volume" {
@@ -9,7 +9,7 @@ resource "libvirt_volume" "salt_volume" {
 }
 
 resource "libvirt_domain" "salt" {
-  name = "k8s-salt"
+  name = "${var.cluster_prefix}k8s-salt"
 
   disk {
     volume_id = "${libvirt_volume.salt_volume.id}"
@@ -43,7 +43,7 @@ resource "libvirt_domain" "salt" {
 
   provisioner "remote-exec" {
     inline = [
-    "hostnamectl set-hostname ${libvirt_domain.salt.network_interface.0.hostname}.${libvirt_network.backend.domain}",
+      "hostnamectl set-hostname ${libvirt_domain.salt.network_interface.0.hostname}.${libvirt_network.backend.domain}",
       "bash /tmp/salt/provision-salt-master.sh",
     ]
   }

@@ -7,7 +7,7 @@ resource "libvirt_volume" "k8s_etcd_volume" {
 
 resource "libvirt_domain" "k8s_etcd" {
   count = "${var.etcd_cluster_size}"
-  name  = "k8s-etcd${count.index}"
+  name  = "${var.cluster_prefix}k8s-etcd${count.index}"
 
   disk {
     volume_id = "${element(libvirt_volume.k8s_etcd_volume.*.id, count.index)}"

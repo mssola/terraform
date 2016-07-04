@@ -7,7 +7,7 @@ resource "libvirt_volume" "k8s_minion_volume" {
 
 resource "libvirt_domain" "k8s_minion" {
   count = "${var.kube_minions_size}"
-  name  = "k8s-minion${count.index}"
+  name  = "${var.cluster_prefix}k8s-minion${count.index}"
 
   disk {
     volume_id = "${element(libvirt_volume.k8s_minion_volume.*.id, count.index)}"

@@ -1,3 +1,8 @@
+# Configuration variables
+#
+# You can override any of these variables from command line by defining `TF_VAR_<the_variable>`
+# For example `TF_VAR_libvirt_uri="qemu://localhost" terraform apply`
+
 variable "libvirt_uri" {
   default     = "qemu:///system"
   description = "The libvirt instance"

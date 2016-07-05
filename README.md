@@ -67,7 +67,7 @@ For example, for OpenStack you should `cd openstack && terraform apply`.
 
 ### Certificates
 
-See the [certificates configuration](README-certs.md) document.
+See the [certificates configuration](docs/certs.md) document.
 
 ### Running salt orchestrator
 

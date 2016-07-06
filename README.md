@@ -1,8 +1,9 @@
 # Terraform provisioning for Kubernetes
 
 This project includes [Terraform](https://www.terraform.io) scripts for
-deploying Kubernetes on top of OpenStack or libvirt. This is not using
-Magnum yet.
+deploying Kubernetes on top of [OpenStack](https://www.openstack.org/)
+or [libvirt](http://libvirt.org/). This is not using
+[Magnum](https://wiki.openstack.org/wiki/Magnum) yet.
 
 The deployment consists of:
 
@@ -12,7 +13,7 @@ The deployment consists of:
   * kube-minions: the number of nodes can be configured
 
 A packaged version of terraform can be found on OBS inside of the
-Virtualization:containers project.
+[Virtualization:containers](https://build.opensuse.org/project/show/Virtualization:containers) project.
 
 ## Cluster configuration
 
@@ -67,7 +68,9 @@ For example, for OpenStack you should `cd openstack && terraform apply`.
 
 ### Certificates
 
-See the [certificates configuration](README-certs.md) document.
+Regular users should just run the `/srv/salt/certs/certs.sh` script (see below),
+but you can find a step-by-step description of all the certificates needed in
+[this document](README-certs.md).
 
 ### Running Salt orchestrator
 
@@ -84,7 +87,7 @@ $ cd <provider> && ssh -i ../ssh/id_docker root@`terraform output salt-fip`
 ### Generate the certificates
 # /srv/salt/certs/certs.sh
 ### Execute the orchestrator
-# salt-run state.orchestrate orch.Kubernetes
+# salt-run state.orchestrate orch.kubernetes
 ```
 
 ## Using the cluster

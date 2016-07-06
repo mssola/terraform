@@ -7,23 +7,20 @@ or [libvirt](http://libvirt.org/). This is not using
 
 The deployment consists of:
 
-  * salt server: used to configure all the nodes
-  * etcd cluster: the number of nodes can be configured
-  * kube-master
-  * kube-minions: the number of nodes can be configured
+  * *salt server*: used to configure all the nodes
+  * *etcd cluster*: the number of nodes can be configured
+  * *kube-master*
+  * *kube-minions*: the number of nodes can be configured
 
-A packaged version of terraform can be found on OBS inside of the
+A packaged version of Terraform can be found on OBS inside of the
 [Virtualization:containers](https://build.opensuse.org/project/show/Virtualization:containers) project.
 
 ## Cluster configuration
 
 Some aspects of the cluster can be configured by using Terraform
-variables.
-
-All the variables are defined inside of `<provider>/variables.tf`.
-
-There's no need to change the file, you can simply set them using
-environment variables.
+variables. All these variables are defined inside of
+`<provider>/variables.tf`, but there's no need to change the file:
+you can simply set them using environment variables.
 
 Examples:
 ```
@@ -36,7 +33,7 @@ section of terraform's documentation.
 
 ### Avoiding name clashes
 
-By default all the VMs provisioned by terraform are going to be named in the
+By default all the VMs provisioned by Terraform are going to be named in the
 same way (eg: `kube-master`, `etcd1`, `etcd2`,...). This makes impossible for
 multiple people to deploy a Kubernetes cluster on the same cloud.
 

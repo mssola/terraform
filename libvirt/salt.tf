@@ -56,3 +56,7 @@ resource "libvirt_domain" "salt" {
 output "salt-ip" {
   value = "${libvirt_domain.salt.network_interface.0.addresses.0}"
 }
+
+output "salt-fip" {
+  value = "${libvirt_domain.salt.network_interface.0.addresses.0}"
+}

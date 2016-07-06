@@ -1,3 +1,7 @@
+variable "etcd_server_base_hostname" {
+  default = "etcd"
+}
+
 resource "libvirt_volume" "k8s_etcd_volume" {
   name             = "k8s-etcd${count.index}.img"
   pool             = "${var.storage_pool}"
@@ -15,7 +19,7 @@ resource "libvirt_domain" "k8s_etcd" {
 
   network_interface {
     network_id     = "${libvirt_network.backend.id}"
-    hostname       = "etcd${count.index}"
+    hostname       = "${var.etcd_server_base_hostname}${count.index}"
     wait_for_lease = 1
   }
 
@@ -39,7 +43,7 @@ resource "libvirt_domain" "k8s_etcd" {
   provisioner "remote-exec" {
     inline = [
       "echo \"master: salt-master\" > /tmp/salt/minion.d/minion.conf",
-      "hostnamectl set-hostname ${libvirt_domain.k8s_etcd.network_interface.0.hostname}.${libvirt_network.backend.domain}",
+      "hostnamectl set-hostname ${var.etcd_server_base_hostname}${count.index}.${libvirt_network.backend.domain}",
       "bash /tmp/salt/provision-salt-minion.sh",
     ]
   }

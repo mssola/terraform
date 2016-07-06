@@ -1,3 +1,7 @@
+variable "haproxy_hostname" {
+  default = "haproxy"
+}
+
 resource "libvirt_volume" "k8s_haproxy_volume" {
   name             = "k8s-haproxy.img"
   pool             = "${var.storage_pool}"
@@ -13,7 +17,7 @@ resource "libvirt_domain" "k8s_haproxy" {
 
   network_interface {
     network_id     = "${libvirt_network.backend.id}"
-    hostname       = "haproxy"
+    hostname       = "${var.haproxy_hostname}"
     wait_for_lease = 1
   }
 
@@ -37,7 +41,7 @@ resource "libvirt_domain" "k8s_haproxy" {
   provisioner "remote-exec" {
     inline = [
       "echo \"master: salt-master\" > /tmp/salt/minion.d/minion.conf",
-      "hostnamectl set-hostname ${libvirt_domain.k8s_haproxy.network_interface.0.hostname}.${libvirt_network.backend.domain}",
+      "hostnamectl set-hostname ${var.haproxy_hostname}.${libvirt_network.backend.domain}",
       "bash /tmp/salt/provision-salt-minion.sh",
     ]
   }

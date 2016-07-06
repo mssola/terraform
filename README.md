@@ -1,7 +1,8 @@
-# Kubernetes on OpenStack
+# Terraform provisioning for Kubernetes
 
-This is a sample deployment of kubernetes on top of OpenStack. This is not using
-Magnum, since we don't have it yet ;)
+This project includes [Terraform](https://www.terraform.io) scripts for
+deploying Kubernetes on top of OpenStack or libvirt. This is not using
+Magnum yet.
 
 The deployment consists of:
 
@@ -10,13 +11,12 @@ The deployment consists of:
   * kube-master
   * kube-minions: the number of nodes can be configured
 
-The whole infrastructure can be deployed using [terraform](https://www.terraform.io).
 A packaged version of terraform can be found on OBS inside of the
 Virtualization:containers project.
 
 ## Cluster configuration
 
-Some aspects of the cluster can be configured by using terraform
+Some aspects of the cluster can be configured by using Terraform
 variables.
 
 All the variables are defined inside of `<provider>/variables.tf`.
@@ -37,7 +37,7 @@ section of terraform's documentation.
 
 By default all the VMs provisioned by terraform are going to be named in the
 same way (eg: `kube-master`, `etcd1`, `etcd2`,...). This makes impossible for
-multiple people to deploy a kubernetes cluster on the same cloud.
+multiple people to deploy a Kubernetes cluster on the same cloud.
 
 This can be solved by setting the `cluster_prefix` variable to something like
 `flavio-`.
@@ -67,13 +67,13 @@ For example, for OpenStack you should `cd openstack && terraform apply`.
 
 ### Certificates
 
-See the [certificates configuration](docs/certs.md) document.
+See the [certificates configuration](README-certs.md) document.
 
-### Running salt orchestrator
+### Running Salt orchestrator
 
 Once all the virtual machines are up and running it's time to configure them.
 
-We are going to use the [salt orchestration](https://docs.saltstack.com/en/latest/topics/tutorials/states_pt5.html#orchestrate-runner)
+We are going to use the [Salt orchestration](https://docs.saltstack.com/en/latest/topics/tutorials/states_pt5.html#orchestrate-runner)
 to implement that.
 
 Just execute the following snippet (replacing `<provider>` by the provider you are using):
@@ -84,12 +84,12 @@ $ cd <provider> && ssh -i ../ssh/id_docker root@`terraform output salt-fip`
 ### Generate the certificates
 # /srv/salt/certs/certs.sh
 ### Execute the orchestrator
-# salt-run state.orchestrate orch.kubernetes
+# salt-run state.orchestrate orch.Kubernetes
 ```
 
 ## Using the cluster
 
-The kubernetes api-server is publicly available. It can be reached on port `8080`
+The Kubernetes _api-server_ is publicly available. It can be reached on port `8080`
 of the floating IP associated to the `kube-master` node.
 
 For example:
@@ -100,7 +100,7 @@ $ kubectl -s http://`terraform output kube-master-fip`:8080 get pods
 
 There's however a more convenient way to use `kubelet`, we can use a dedicated
 profile for this cluster. You can read
-[here](https://coreos.com/kubernetes/docs/latest/configure-kubectl.html) how
+[here](https://coreos.com/Kubernetes/docs/latest/configure-kubectl.html) how
 it's possible to configure kubelet.
 
 Inside of this project there's a `.envrc` file. This is a shell profile that

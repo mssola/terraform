@@ -1,3 +1,7 @@
+variable "kube_master_hostname" {
+  default = "kube-master"
+}
+
 resource "libvirt_volume" "k8s_master_volume" {
   name             = "k8s-master.img"
   pool             = "${var.storage_pool}"
@@ -13,7 +17,7 @@ resource "libvirt_domain" "k8s_master" {
 
   network_interface {
     network_id     = "${libvirt_network.backend.id}"
-    hostname       = "master"
+    hostname       = "${var.kube_master_hostname}"
     wait_for_lease = 1
   }
 
@@ -37,7 +41,7 @@ resource "libvirt_domain" "k8s_master" {
   provisioner "remote-exec" {
     inline = [
       "echo \"master: salt-master\" > /tmp/salt/minion.d/minion.conf",
-      "hostnamectl set-hostname ${libvirt_domain.k8s_master.network_interface.0.hostname}.${libvirt_network.backend.domain}",
+      "hostnamectl set-hostname ${var.kube_master_hostname}.${libvirt_network.backend.domain}",
       "bash /tmp/salt/provision-salt-minion.sh",
     ]
   }

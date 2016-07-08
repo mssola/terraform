@@ -2,6 +2,10 @@ provider "libvirt" {
   uri = "${var.libvirt_uri}"
 }
 
+variable "salt_hostname" {
+  default = "salt-master"
+}
+
 resource "libvirt_volume" "salt_volume" {
   name             = "salt-k8s.img"
   pool             = "${var.storage_pool}"
@@ -17,7 +21,7 @@ resource "libvirt_domain" "salt" {
 
   network_interface {
     network_id     = "${libvirt_network.backend.id}"
-    hostname       = "salt-master"
+    hostname       = "${var.salt_hostname}"
     wait_for_lease = 1
   }
 
@@ -43,12 +47,27 @@ resource "libvirt_domain" "salt" {
 
   provisioner "remote-exec" {
     inline = [
-      "hostnamectl set-hostname ${libvirt_domain.salt.network_interface.0.hostname}.${libvirt_network.backend.domain}",
+      "mkdir -p /etc/salt/master.d",
+    ]
+  }
+
+  provisioner "file" {
+    source      = "../salt/salt-conf/"
+    destination = "/etc/salt/master.d"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "hostnamectl set-hostname ${var.salt_hostname}.${libvirt_network.backend.domain}",
       "bash /tmp/salt/provision-salt-master.sh",
     ]
   }
 }
 
 output "salt-ip" {
+  value = "${libvirt_domain.salt.network_interface.0.addresses.0}"
+}
+
+output "salt-fip" {
   value = "${libvirt_domain.salt.network_interface.0.addresses.0}"
 }

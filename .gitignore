@@ -3,3 +3,4 @@ osrc.sh
 *.tfstate
 *.tfstate.backup
 *openrc*.sh
+.envrc

@@ -1,3 +1,7 @@
+variable "nfs_server_hostname" {
+  default = "nfs-server"
+}
+
 resource "libvirt_volume" "k8s_nfs_volume" {
   name             = "k8s-nfs.img"
   pool             = "${var.storage_pool}"
@@ -13,7 +17,7 @@ resource "libvirt_domain" "k8s_nfs" {
 
   network_interface {
     network_id     = "${libvirt_network.backend.id}"
-    hostname       = "nfs-server"
+    hostname       = "${var.nfs_server_hostname}"
     wait_for_lease = 1
   }
 
@@ -37,7 +41,7 @@ resource "libvirt_domain" "k8s_nfs" {
   provisioner "remote-exec" {
     inline = [
       "echo \"master: salt-master\" > /tmp/salt/minion.d/minion.conf",
-      "hostnamectl set-hostname ${libvirt_domain.k8s_nfs.network_interface.0.hostname}.${libvirt_network.backend.domain}",
+      "hostnamectl set-hostname ${var.nfs_server_hostname}.${libvirt_network.backend.domain}",
       "bash /tmp/salt/provision-salt-minion.sh",
     ]
   }

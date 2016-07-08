@@ -47,6 +47,17 @@ resource "libvirt_domain" "salt" {
 
   provisioner "remote-exec" {
     inline = [
+      "mkdir -p /etc/salt/master.d",
+    ]
+  }
+
+  provisioner "file" {
+    source      = "../salt/salt-conf/"
+    destination = "/etc/salt/master.d"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
       "hostnamectl set-hostname ${var.salt_hostname}.${libvirt_network.backend.domain}",
       "bash /tmp/salt/provision-salt-master.sh",
     ]

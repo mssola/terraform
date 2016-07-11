@@ -1,0 +1,187 @@
+<% set("cluster_prefix", "k8s") if !exists?("cluster_prefix") %>
+
+<% if provider == "libvirt" %>
+    <% domain_type = "libvirt_domain" %>
+<% elsif provider == "openstack" %>
+    <% domain_type = "openstack_compute_instance_v2" %>
+<% end %>
+
+<% if provider == "libvirt" %>
+provider "libvirt" {
+    uri = "<%= libvirt_uri %>"
+}
+
+<%# network definition only for libvirt %>
+resource "libvirt_network" "backend" {
+    name      = "<%= cluster_prefix %>net"
+    mode      = "nat"
+    domain    = "<%= cluster_prefix %>.local"
+    addresses = ["10.17.3.0/24"]
+}
+<% end %>
+
+#####################
+# salt master
+#####################
+
+<%= render "inc/fip.inc", name: "salt" %>
+<%= render "inc/volume.inc", name: "salt" %>
+
+resource "<%= domain_type %>" "salt" {
+    name = "<%= cluster_prefix %>_salt"
+    <%= render "inc/disk.inc", volume_id: "salt" %>
+    <%= render "inc/net_iface.inc", hostname: "salt", floating_ip: "salt" %>
+
+    <% if provider == "openstack" %>
+        flavor_name      = "m1.small"
+        key_pair         = "<%= key_pair %>"
+
+        provisioner "file" {
+            source      = "../ssh/id_docker"
+            destination = "/root/.ssh/id_rsa"
+        }
+    <% end %>
+
+    provisioner "file" {
+        source      = "../bootstrap/salt"
+        destination = "/tmp"
+    }
+
+    provisioner "file" {
+        source      = "../salt/salt"
+        destination = "/srv"
+    }
+
+    provisioner "file" {
+        source      = "../salt/pillar"
+        destination = "/srv"
+    }
+
+    provisioner "remote-exec" {
+      inline = [
+        "mkdir -p /etc/salt/master.d",
+      ]
+    }
+
+    provisioner "file" {
+        source      = "../salt/salt-conf/"
+        destination = "/etc/salt/master.d"
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            <% if provider == "libvirt" %>
+            "hostnamectl set-hostname salt-master.${libvirt_network.backend.domain}",
+            <% end %>
+            "chmod 600 /root/.ssh/id_rsa",
+            "bash /tmp/salt/provision-salt-master.sh",
+        ]
+    }
+}
+
+<%# we will need to reference this Salt instance later on, but sometimes %>
+<%# with the IP address (openstack) and sometimes with the name (libvirt) %>
+<% if provider == "openstack" %>
+    <% salt_ref = "${openstack_compute_instance_v2.salt.network.0.fixed_ip_v4}" %>
+<% elsif provider == "libvirt" %>
+    <% salt_ref = "salt-master" %>
+<% end %>
+
+#####################
+# NFS server
+#####################
+
+<%= render "inc/volume.inc", name: "nfs" %>
+
+resource "<%= domain_type %>" "nfs" {
+    name = "<%= cluster_prefix %>_nfs"
+    depends_on = ["<%= domain_type %>.salt"]
+    <%= render "inc/disk.inc", volume_id: "nfs" %>
+    <%= render "inc/net_iface.inc", hostname: "nfs-server", bastion: "salt" %>
+    <%= render "inc/domain.inc", hostname: "nfs-server", grains_name: "nfs" %>
+}
+
+#####################
+# etcd
+#####################
+
+<%= render "inc/volume.inc", name: "etcd", count: etcd_cluster_size %>
+
+resource "<%= domain_type %>" "etcd" {
+    count = "<%= etcd_cluster_size %>"
+    name  = "<%= cluster_prefix %>_etcd${count.index}"
+    depends_on = ["<%= domain_type %>.salt"]
+    <%= render "inc/disk.inc", volume_id: "etcd", count: etcd_cluster_size %>
+    <%= render "inc/net_iface.inc",
+              hostname: "etcd${count.index}",
+              bastion: "salt" %>
+    <%= render "inc/domain.inc",
+              hostname: "etcd${count.index}",
+              grains_name: "etcd",
+              salt_master: salt_ref %>
+}
+
+#####################
+# haproxy
+#####################
+
+<%= render "inc/volume.inc", name: "haproxy" %>
+<%= render "inc/fip.inc", name: "haproxy" %>
+
+resource "<%= domain_type %>" "haproxy" {
+    name = "<%= cluster_prefix %>_haproxy"
+    depends_on = ["<%= domain_type %>.salt", "<%= domain_type %>.etcd"]
+    <%= render "inc/disk.inc", volume_id: "haproxy" %>
+    <%= render "inc/net_iface.inc",
+              hostname: "haproxy",
+              floating_ip: "haproxy",
+              bastion: "salt" %>
+    <%= render "inc/domain.inc",
+              hostname: "haproxy",
+              grains_name: "haproxy",
+              salt_master: salt_ref %>
+}
+
+#####################
+# kube-master
+#####################
+
+<%= render "inc/fip.inc", name: "kube_master" %>
+<%= render "inc/volume.inc", name: "kube_master" %>
+
+resource "<%= domain_type %>" "kube_master" {
+    name = "<%= cluster_prefix %>_master"
+    depends_on = ["<%= domain_type %>.salt", "<%= domain_type %>.etcd"]
+    <%= render "inc/disk.inc", volume_id: "kube_master" %>
+    <%= render "inc/net_iface.inc",
+              hostname: "kube-master",
+              floating_ip: "kube_master",
+              bastion: "salt" %>
+    <%= render "inc/domain.inc",
+              flavor_name: "m1.medium",
+              hostname: "kube-master",
+              grains_name: "kube-master",
+              salt_master: salt_ref %>
+}
+
+#####################
+# kube-minion
+#####################
+
+<%= render "inc/volume.inc", name: "minion", count: kube_minions_size %>
+
+resource "<%= domain_type %>" "kube_minion" {
+    count = "<%= kube_minions_size %>"
+    name  = "<%= cluster_prefix %>_minion${count.index}"
+    depends_on = ["<%= domain_type %>.salt",
+                  "<%= domain_type %>.kube_master",
+                  "<%= domain_type %>.nfs"]
+    <%= render "inc/disk.inc", volume_id: "minion", count: kube_minions_size %>
+    <%= render "inc/net_iface.inc",
+              hostname: "minion${count.index}",
+              bastion: "salt" %>
+    <%= render "inc/domain.inc",
+              hostname: "minion${count.index}",
+              grains_name: "kube-minion",
+              salt_master: salt_ref %>
+}

@@ -17,11 +17,12 @@ kube_minions_size = 3
 # the libvirt instance
 libvirt_uri = "qemu:///system"
 
-# the base volume in the pool
-base_volume = "openSUSE-Leap-btrfs.qcow2"
+# the base volume or source URL in the pool
+volume_base = "openSUSE-Leap-btrfs.qcow2"
+volume_source =
 
 # the storage pool
-storage_pool = "default"
+volume_pool = "default"
 
 # is the image an UEFI image? then you need a valid firmware
 is_uefi_image = no

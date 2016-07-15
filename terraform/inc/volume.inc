@@ -7,7 +7,13 @@ resource "libvirt_volume" "<%= name %>_volume" {
     name             = "<%= name %>.img"
     <% end %>
 
-    pool             = "<%= storage_pool %>"
-    base_volume_name = "<%= base_volume %>"
+    pool             = "<%= volume_pool %>"
+
+    <% if exists?("volume_base") %>
+    base_volume_name = "<%= volume_base %>"
+    <% elsif exists?("volume_source") %>
+    source          = "<%= volume_source %>"
+    <% end %>
+
 }
 <% end %>

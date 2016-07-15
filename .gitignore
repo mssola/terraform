@@ -4,3 +4,7 @@ osrc.sh
 *.tfstate.backup
 *openrc*.sh
 .envrc
+
+# some output filenames
+all.tf
+k8s-setup.tf

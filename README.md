@@ -67,7 +67,7 @@ For example, for OpenStack you should `cd openstack && terraform apply`.
 
 Regular users should just run the `/srv/salt/certs/certs.sh` script (see below),
 but you can find a step-by-step description of all the certificates needed in
-[this document](README-certs.md).
+[this document](docs/certs.md).
 
 ### Running Salt orchestrator
 

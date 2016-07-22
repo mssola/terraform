@@ -1,7 +1,7 @@
 # the provider
 provider = "openstack"
 
-# Use it to avoid clashes on the same libvirt instance - use something like '<USER>-k8s'"
+# Use it to avoid clashes on the same libvirt instance - use something like '<USER>_k8s'"
 # note: this should not start/end with non-alpha characters
 cluster_prefix = ""
 

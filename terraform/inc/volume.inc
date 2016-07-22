@@ -2,9 +2,9 @@
 resource "libvirt_volume" "<%= name %>_volume" {
     <% if exists?("count") %>
     count            = <%= count %>
-    name             = "<%= name %>${count.index}.img"
+    name             = "<%= cluster_prefix %>_<%= name %>${count.index}.img"
     <% else %>
-    name             = "<%= name %>.img"
+    name             = "<%= cluster_prefix %>_<%= name %>.img"
     <% end %>
 
     pool             = "<%= volume_pool %>"

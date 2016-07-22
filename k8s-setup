@@ -15,6 +15,8 @@ $log.datetime_format = "%H:%M:%S"
 FILENAME = File.basename($PROGRAM_NAME, File.extname($PROGRAM_NAME)).freeze
 VERSION = "1.0".freeze
 
+ORIG_ARGV = ARGV.clone
+
 OUT_FILENAME = "#{FILENAME}.tf".freeze
 
 RED = "\033[33;31m".freeze
@@ -190,6 +192,9 @@ FileUtils.mkdir_p(dirname) unless File.directory?(dirname)
 
 warning("overwriting '#{File.basename(output_tfs_filename)}'") if File.exist?(output_tfs_filename)
 File.open(output_tfs_filename, File::CREAT | File::TRUNC | File::RDWR) do |all_tfs_file|
+  all_tfs_file.puts("\# Generated dynamically by #{FILENAME}")
+  all_tfs_file.puts("\# cmd: \"#{FILENAME} #{ORIG_ARGV.join(" ")}\"")
+
   debug("writing TF files as they are")
   Dir.glob("#{$vars["terraforms"]}/*.tf") do |tf_filename|
     debug("... adding #{tf_filename}")

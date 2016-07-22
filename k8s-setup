@@ -1,0 +1,213 @@
+#!/usr/bin/env ruby
+# erbaform: a script for processing Terraform files with ERB
+#
+
+require "optparse"
+require "erb"
+require "logger"
+require "ostruct"
+require "fileutils"
+
+$log = Logger.new(STDOUT)
+$log.level = Logger::INFO
+$log.datetime_format = "%H:%M:%S"
+
+FILENAME = File.basename($PROGRAM_NAME, File.extname($PROGRAM_NAME)).freeze
+VERSION = "1.0".freeze
+
+OUT_FILENAME = "#{FILENAME}.tf".freeze
+
+RED = "\033[33;31m".freeze
+GREEN = "\033[33;32m".freeze
+YELLOW = "\033[33;33m".freeze
+BLUE = "\033[33;34m".freeze
+MAGENTA = "\033[33;35m".freeze
+GRAY = "\033[33;30m".freeze
+CYAN = "\033[33;36m".freeze
+RESET = "\e[0m".freeze
+
+def debug(msg)
+  $log.debug("#{YELLOW}#{msg}#{RESET}")
+end
+
+def info(msg)
+  $log.info("#{GREEN}#{msg}#{RESET}")
+end
+
+def warning(msg)
+  $log.info("#{CYAN}#{msg}#{RESET}")
+end
+
+def abort(msg)
+  $log.fatal("#{RED}#{msg}#{RESET}")
+  exit(1)
+end
+
+class Variables < OpenStruct
+  # true if the variable is defined and not empty
+  def exists?(k)
+    !self[k].nil? && !self[k].to_s.empty?
+  end
+
+  # set a variable
+  # doing `k=nil` or `k =""` removes the key `k` from the variables
+  def set(k, v)
+    return if k.nil? || k.empty?
+    if v.nil? || v.empty?
+      self[k] = ""
+      return
+    end
+    # try to convert the string to some "better" type
+    begin
+      self[k] = v.is_a?(Integer) ? Integer(v) : v.to_bool
+    rescue ArgumentError
+      self[k] = v
+    end
+  end
+
+  # add a variable from a line like `variable=value`
+  def set_line(var_line)
+    k, v = var_line.split("=")
+    k = k.strip.tr('"', "")
+    v = v.strip.tr('"', "") unless v.nil?
+    debug("defining: '#{k}' = #{v}")
+    set(k, v)
+  end
+
+  # render the template, providing some optional, extra variables
+  def render(template, **extra)
+    cp = clone
+    extra.each { |k, v| cp.set(k, v) }
+    full_path = File.expand_path(template)
+    Dir.chdir(File.dirname(full_path)) do
+      begin
+        contents = File.read(full_path)
+        ERB.new(contents).result(cp.instance_eval { binding })
+      rescue SyntaxError, NameError => e
+        abort("when processing #{full_path}: #{e}")
+      end
+    end
+  end
+end
+
+$vars = Variables.new(nil)
+
+class String
+  def to_bool
+    unless empty?
+      return true   if self == true   || self =~ /^(true|t|yes|y|1)$/i
+      return false  if self == false  || empty? || self =~ /^(false|f|no|n|0)$/i
+    end
+    raise ArgumentError, "invalid value for Boolean: \"#{self}\""
+  end
+end
+
+# find an executable in the PATH
+def which(cmd)
+  ENV["PATH"].split(File::PATH_SEPARATOR).each do |path|
+    exe = File.join(path, cmd)
+    return exe if File.executable?(exe) && !File.directory?(exe)
+  end
+end
+
+############################
+# main
+############################
+
+curr_dir = File.expand_path(Dir.pwd)
+output_tfs_filename = File.join(curr_dir, OUT_FILENAME)
+
+$vars["terraforms"] = if Dir.exist?(File.join(curr_dir, "terraform"))
+  File.join(curr_dir, "terraform")
+else
+  curr_dir
+end
+$vars["work_dir"] = nil
+
+vars_cmdline   = []
+vars_filenames = []
+terraform_path = nil
+
+info("#{FILENAME} v#{VERSION}")
+
+OptionParser.new do |parser|
+  parser.on("-pPROVIDER", "--provider=PROVIDER", "The provider to use") do |provider|
+    $vars["provider"] = provider
+  end
+  parser.on("-tPATH", "--terraform=PATH", "The terraform executable") do |tp|
+    terraform_path = tp
+  end
+  parser.on("-VVAR", "--var=VAR", "A variable to define") do |vl|
+    vars_cmdline << vl
+  end
+  parser.on("-FFILE", "--vars-file=FILE", "A file with variables") do |f|
+    vars_filenames << f
+  end
+  parser.on("-DDIR", "--dir=DIR", "The directory with .tf and .tf.erb files") do |d|
+    $vars["terraforms"] = File.expand_path(d)
+  end
+  parser.on("-WDIR", "--work-dir=DIR", "The working directory") do |w|
+    $vars["work_dir"] = File.expand_path(w)
+  end
+  parser.on("-wFILE", "--write-to=FILE", "Output file") do |w|
+    output_tfs_filename = w
+  end
+  parser.on_tail("-v", "--verbose", "Be verbose") do
+    $log.level = Logger::DEBUG
+  end
+end.parse!
+
+vars_filenames.each do |vars_filename|
+  info("loading '#{vars_filename}'")
+  File.open(vars_filename) do |vars_file|
+    vars_file.each do |var_line|
+      var_line.chomp!
+      next if var_line.start_with?("#")
+      next if var_line.empty?
+      $vars.set_line(var_line)
+    end
+  end
+end
+
+vars_cmdline.each { |vl| $vars.set_line(vl) }
+
+terraform_path = which("terraform") if terraform_path.nil?
+abort "terraform path not provided and could not be found in PATH." if terraform_path.nil?
+debug("terraform exe  = #{terraform_path}")
+
+abort "no 'provider' provided." unless $vars.exists?("provider")
+
+$vars["work_dir"]     = curr_dir if $vars["work_dir"].nil?
+
+debug("source dir     = #{$vars["terraforms"]}")
+debug("work dir       = #{$vars["work_dir"]}")
+debug("all TFs file   = #{output_tfs_filename}")
+abort "#{$vars["terraforms"]} directory does not exist." unless File.directory?($vars["terraforms"])
+
+info("generating '#{OUT_FILENAME}'")
+dirname = File.dirname(output_tfs_filename)
+FileUtils.mkdir_p(dirname) unless File.directory?(dirname)
+
+warning("overwriting '#{File.basename(output_tfs_filename)}'") if File.exist?(output_tfs_filename)
+File.open(output_tfs_filename, File::CREAT | File::TRUNC | File::RDWR) do |all_tfs_file|
+  debug("writing TF files as they are")
+  Dir.glob("#{$vars["terraforms"]}/*.tf") do |tf_filename|
+    debug("... adding #{tf_filename}")
+    all_tfs_file.write(File.read(tf_filename))
+  end
+
+  debug("processing templates")
+  Dir.glob("#{$vars["terraforms"]}/*.tf.erb") do |template|
+    debug("... adding #{template}")
+    begin
+      all_tfs_file.write($vars.render(template))
+    rescue SyntaxError => e
+      abort("when processing #{template}: #{e}")
+    end
+  end
+end
+
+cmd = ([terraform_path] + ARGV).join(" ")
+debug("running: '#{cmd}'")
+Dir.chdir($vars["work_dir"])
+exec(cmd)

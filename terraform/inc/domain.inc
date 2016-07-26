@@ -14,13 +14,18 @@
 <% end %>
 
   provisioner "file" {
-    source      = "../bootstrap/salt"
+    source      = "bootstrap/salt"
     destination = "/tmp"
   }
 
   provisioner "file" {
-    source      = "../bootstrap/grains/<%= grains_name %>"
+    source      = "bootstrap/grains/<%= grains_name %>"
     destination = "/tmp/salt/grains"
+  }
+
+  provisioner "file" {
+      source      = "ssh"
+      destination = "/root/.ssh"
   }
 
   provisioner "remote-exec" {

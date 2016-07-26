@@ -9,11 +9,12 @@ resource "libvirt_volume" "<%= name %>_volume" {
 
     pool             = "<%= volume_pool %>"
 
-    <% if exists?("volume_base") %>
+    <% if exists?("base_id") %>
+    base_volume_id = "${libvirt_volume.<%= base_id %>_volume.id}"
+    <% elsif exists?("volume_base") %>
     base_volume_name = "<%= volume_base %>"
     <% elsif exists?("volume_source") %>
     source          = "<%= volume_source %>"
     <% end %>
-
 }
 <% end %>

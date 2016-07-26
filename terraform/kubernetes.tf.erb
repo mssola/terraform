@@ -18,6 +18,10 @@ resource "libvirt_network" "backend" {
     domain    = "<%= cluster_prefix %>.local"
     addresses = ["10.17.3.0/24"]
 }
+
+<%# base volume definition %>
+<%= render "inc/volume.inc", name: "base" %>
+
 <% end %>
 
 #####################
@@ -25,37 +29,17 @@ resource "libvirt_network" "backend" {
 #####################
 
 <%= render "inc/fip.inc", name: "salt" %>
-<%= render "inc/volume.inc", name: "salt" %>
+<%= render "inc/volume.inc", name: "salt", base_id: "base" %>
 
 resource "<%= domain_type %>" "salt" {
     name = "<%= cluster_prefix %>_salt"
     <%= render "inc/disk.inc", volume_id: "salt" %>
-    <%= render "inc/net_iface.inc", hostname: "salt", floating_ip: "salt" %>
+    <%= render "inc/net_iface.inc", hostname: "salt-master", floating_ip: "salt" %>
 
     <% if provider == "openstack" %>
         flavor_name      = "m1.small"
         key_pair         = "<%= key_pair %>"
-
-        provisioner "file" {
-            source      = "../ssh/id_docker"
-            destination = "/root/.ssh/id_rsa"
-        }
     <% end %>
-
-    provisioner "file" {
-        source      = "../bootstrap/salt"
-        destination = "/tmp"
-    }
-
-    provisioner "file" {
-        source      = "../salt/salt"
-        destination = "/srv"
-    }
-
-    provisioner "file" {
-        source      = "../salt/pillar"
-        destination = "/srv"
-    }
 
     provisioner "remote-exec" {
       inline = [
@@ -64,7 +48,27 @@ resource "<%= domain_type %>" "salt" {
     }
 
     provisioner "file" {
-        source      = "../salt/salt-conf/"
+        source      = "ssh"
+        destination = "/root/.ssh"
+    }
+
+    provisioner "file" {
+        source      = "bootstrap/salt"
+        destination = "/tmp"
+    }
+
+    provisioner "file" {
+        source      = "salt/salt"
+        destination = "/srv"
+    }
+
+    provisioner "file" {
+        source      = "salt/pillar"
+        destination = "/srv"
+    }
+
+    provisioner "file" {
+        source      = "salt/salt-conf/"
         destination = "/etc/salt/master.d"
     }
 
@@ -73,7 +77,6 @@ resource "<%= domain_type %>" "salt" {
             <% if provider == "libvirt" %>
             "hostnamectl set-hostname salt-master.${libvirt_network.backend.domain}",
             <% end %>
-            "chmod 600 /root/.ssh/id_rsa",
             "bash /tmp/salt/provision-salt-master.sh",
         ]
     }
@@ -91,7 +94,7 @@ resource "<%= domain_type %>" "salt" {
 # NFS server
 #####################
 
-<%= render "inc/volume.inc", name: "nfs" %>
+<%= render "inc/volume.inc", name: "nfs", base_id: "base" %>
 
 resource "<%= domain_type %>" "nfs" {
     name = "<%= cluster_prefix %>_nfs"
@@ -105,7 +108,10 @@ resource "<%= domain_type %>" "nfs" {
 # etcd
 #####################
 
-<%= render "inc/volume.inc", name: "etcd", count: etcd_cluster_size %>
+<%= render "inc/volume.inc",
+    name: "etcd",
+    count: etcd_cluster_size,
+    base_id: "base" %>
 
 resource "<%= domain_type %>" "etcd" {
     count = "<%= etcd_cluster_size %>"
@@ -125,7 +131,7 @@ resource "<%= domain_type %>" "etcd" {
 # haproxy
 #####################
 
-<%= render "inc/volume.inc", name: "haproxy" %>
+<%= render "inc/volume.inc", name: "haproxy", base_id: "base" %>
 <%= render "inc/fip.inc", name: "haproxy" %>
 
 resource "<%= domain_type %>" "haproxy" {
@@ -147,7 +153,7 @@ resource "<%= domain_type %>" "haproxy" {
 #####################
 
 <%= render "inc/fip.inc", name: "kube_master" %>
-<%= render "inc/volume.inc", name: "kube_master" %>
+<%= render "inc/volume.inc", name: "kube_master", base_id: "base" %>
 
 resource "<%= domain_type %>" "kube_master" {
     name = "<%= cluster_prefix %>_master"
@@ -168,7 +174,10 @@ resource "<%= domain_type %>" "kube_master" {
 # kube-minion
 #####################
 
-<%= render "inc/volume.inc", name: "minion", count: kube_minions_size %>
+<%= render "inc/volume.inc",
+    name: "minion",
+    count: kube_minions_size,
+    base_id: "base" %>
 
 resource "<%= domain_type %>" "kube_minion" {
     count = "<%= kube_minions_size %>"

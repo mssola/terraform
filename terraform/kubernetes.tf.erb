@@ -11,15 +11,7 @@ provider "libvirt" {
     uri = "<%= libvirt_uri %>"
 }
 
-<%# network definition only for libvirt %>
-resource "libvirt_network" "backend" {
-    name      = "<%= cluster_prefix %>net"
-    mode      = "nat"
-    domain    = "<%= cluster_prefix %>.local"
-    addresses = ["10.17.3.0/24"]
-}
-
-<%# base volume definition %>
+<%= render "inc/network.inc", name: "base" %>
 <%= render "inc/volume.inc", name: "base" %>
 
 <% end %>

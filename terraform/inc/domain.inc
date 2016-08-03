@@ -14,12 +14,12 @@
 <% end %>
 
   provisioner "file" {
-    source      = "bootstrap/salt"
+    source      = "salt/bootstrap/salt"
     destination = "/tmp"
   }
 
   provisioner "file" {
-    source      = "bootstrap/grains/<%= grains_name %>"
+    source      = "salt/bootstrap/grains/<%= grains_name %>"
     destination = "/tmp/salt/grains"
   }
 

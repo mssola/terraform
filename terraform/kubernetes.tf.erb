@@ -45,7 +45,7 @@ resource "<%= domain_type %>" "salt" {
     }
 
     provisioner "file" {
-        source      = "bootstrap/salt"
+        source      = "salt/bootstrap/salt"
         destination = "/tmp"
     }
 

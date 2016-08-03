@@ -212,7 +212,9 @@ File.open(output_tfs_filename, File::CREAT | File::TRUNC | File::RDWR) do |all_t
   end
 end
 
-cmd = ([terraform_path] + ARGV).join(" ")
-debug("running: '#{cmd}'")
-Dir.chdir($vars["work_dir"])
-exec(cmd)
+if !ARGV.empty?
+    cmd = ([terraform_path] + ARGV).join(" ")
+    debug("running: '#{cmd}'")
+    Dir.chdir($vars["work_dir"])
+    exec(cmd)
+end

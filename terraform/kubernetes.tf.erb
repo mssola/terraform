@@ -45,22 +45,22 @@ resource "<%= domain_type %>" "salt" {
     }
 
     provisioner "file" {
-        source      = "salt/bootstrap/salt"
+        source      = "<%= salt_dir %>/bootstrap/salt"
         destination = "/tmp"
     }
 
     provisioner "file" {
-        source      = "salt/salt"
+        source      = "<%= salt_dir %>/salt"
         destination = "/srv"
     }
 
     provisioner "file" {
-        source      = "salt/pillar"
+        source      = "<%= salt_dir %>/pillar"
         destination = "/srv"
     }
 
     provisioner "file" {
-        source      = "salt/salt-conf/"
+        source      = "<%= salt_dir %>/salt-conf/"
         destination = "/etc/salt/master.d"
     }
 

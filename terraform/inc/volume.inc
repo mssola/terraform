@@ -1,6 +1,5 @@
 <% if provider == "libvirt" %>
 
-    <% # base volume definition %>
     resource "libvirt_volume" "<%= name %>_volume" {
         <% if exists?("count") %>
         count            = <%= count %>
@@ -19,5 +18,5 @@
         source          = "<%= volume_source %>"
         <% end %>
     }
-    
+
 <% end %>

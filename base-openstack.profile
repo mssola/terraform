@@ -6,7 +6,10 @@ provider = "openstack"
 cluster_prefix = ""
 
 # the directory where we hold our Salt files
-salt_dir = "salt"
+salt_dir = ?
+
+# the directory where we hold our ssh keys
+ssh_dir = "ssh"
 
 #######################
 # cluster sizes

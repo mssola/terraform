@@ -90,6 +90,10 @@ class Variables < OpenStruct
       end
     end
   end
+
+  def check()
+    self.marshal_dump.each {|k, v| abort("no value provided for '#{k}'") if v == "?" }
+  end
 end
 
 $vars = Variables.new(nil)
@@ -185,6 +189,9 @@ debug("source dir     = #{$vars["terraforms"]}")
 debug("work dir       = #{$vars["work_dir"]}")
 debug("all TFs file   = #{output_tfs_filename}")
 abort "#{$vars["terraforms"]} directory does not exist." unless File.directory?($vars["terraforms"])
+
+# check there are no compulsory variables
+$vars.check
 
 info("generating '#{OUT_FILENAME}'")
 dirname = File.dirname(output_tfs_filename)

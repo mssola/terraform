@@ -40,6 +40,15 @@ details.
 
 Some important variables are:
 
+  * `salt_dir`
+
+    The directory where the Salt scripts are (usually a checkout of [this
+    repo](https://gitlab.suse.de/docker/k8s-salt))
+
+  * `salt_dir`
+
+    The directory where the ssh keys are (by default, the local `ssh` directory)
+
   * `cluster_prefix`
 
     By default all the VMs provisioned by Terraform are going to be named in the

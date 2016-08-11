@@ -40,7 +40,7 @@ resource "<%= domain_type %>" "salt" {
     }
 
     provisioner "file" {
-        source      = "ssh"
+        source      = "<%= ssh_dir %>"
         destination = "/root/.ssh"
     }
 

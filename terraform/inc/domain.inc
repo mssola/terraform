@@ -24,7 +24,7 @@
   }
 
   provisioner "file" {
-      source      = "ssh"
+      source      = "<%= ssh_dir %>"
       destination = "/root/.ssh"
   }
 

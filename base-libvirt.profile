@@ -6,7 +6,7 @@ provider = "libvirt"
 cluster_prefix = ""
 
 # the directory where we hold our Salt files
-salt_dir = "salt"
+salt_dir = ?
 
 #######################
 # cluster sizes

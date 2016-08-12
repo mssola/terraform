@@ -6,7 +6,11 @@
     }
 
     network_interface {
+        <% if exists?("bridge") %>
+        bridge = "<%= bridge %>"
+        <% else %>
         network_id     = "${libvirt_network.backend.id}"
+        <% end %>
         hostname       = "<%= hostname %>"
         wait_for_lease = 1
     }

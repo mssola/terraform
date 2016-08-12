@@ -68,6 +68,12 @@ Some important variables are:
     By default the k8s cluster has 3 k8s minions. However it's possible to
     change the default value by using the `kube_minions_size` variable.
 
+  * `bridge`
+
+    Name of the bridge interface to use when creating the nodes. This is useful
+    when the libvirt host is a remote machine different from the one running
+    terraform.
+
 Please take a look at the `*.profile` files for more variables used in
 our templates.
 

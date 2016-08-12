@@ -67,7 +67,11 @@ resource "<%= domain_type %>" "salt" {
     provisioner "remote-exec" {
         inline = [
             <% if provider == "libvirt" %>
-            "hostnamectl set-hostname salt-master.${libvirt_network.backend.domain}",
+            "hostnamectl set-hostname salt-master<%= ".${libvirt_network.backend.domain}" unless exists?("bridge")%>",
+
+            "echo 'infrastructure: \"libvirt\"' >> /srv/salt/pillar/params.sls",
+            <% else %>
+            "echo 'infrastructure: \"cloud\"' >> /srv/salt/pillar/params.sls",
             <% end %>
             "bash /tmp/salt/provision-salt-master.sh",
         ]

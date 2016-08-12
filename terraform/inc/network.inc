@@ -1,4 +1,4 @@
-<% if provider == "libvirt" %>
+<% if provider == "libvirt" && !exists?("bridge")%>
 
     resource "libvirt_network" "backend" {
         name      = "<%= cluster_prefix %>net"

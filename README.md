@@ -45,7 +45,7 @@ Some important variables are:
     The directory where the Salt scripts are (usually a checkout of [this
     repo](https://gitlab.suse.de/docker/k8s-salt))
 
-  * `salt_dir`
+  * `ssh_dir`
 
     The directory where the ssh keys are (by default, the local `ssh` directory)
 

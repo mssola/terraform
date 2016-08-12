@@ -68,6 +68,10 @@ resource "<%= domain_type %>" "salt" {
         inline = [
             <% if provider == "libvirt" %>
             "hostnamectl set-hostname salt-master.${libvirt_network.backend.domain}",
+
+            "echo 'infrastructure: \"libvirt\"' >> /srv/salt/pillar/params.sls",
+            <% else %>
+            "echo 'infrastructure: \"cloud\"' >> /srv/salt/pillar/params.sls",
             <% end %>
             "bash /tmp/salt/provision-salt-master.sh",
         ]

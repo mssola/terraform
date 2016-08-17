@@ -83,7 +83,12 @@ resource "<%= domain_type %>" "salt" {
 <% if provider == "openstack" %>
     <% salt_ref = "${openstack_compute_instance_v2.salt.network.0.fixed_ip_v4}" %>
 <% elsif provider == "libvirt" %>
-    <% salt_ref = "salt-master" %>
+    <% if exists?("bridge") %>
+        <%# we do not have DNS on bridge mode, so we use a hardcoded IP %>
+        <% salt_ref = "${libvirt_domain.salt.network_interface.0.addresses.0}" %>
+    <% else %>
+        <% salt_ref = "salt-master" %>
+    <% end %>
 <% end %>
 
 #####################

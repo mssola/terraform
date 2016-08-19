@@ -22,11 +22,13 @@ provider "libvirt" {
 
 <%= render "inc/fip.inc", name: "salt" %>
 <%= render "inc/volume.inc", name: "salt", base_id: "base" %>
+<%= render "inc/cloudinit_def.inc", name: "salt", hostname: "salt-master" %>
 
 resource "<%= domain_type %>" "salt" {
     name = "<%= cluster_prefix %>_salt"
     <%= render "inc/disk.inc", volume_id: "salt" %>
     <%= render "inc/net_iface.inc", hostname: "salt-master", floating_ip: "salt" %>
+    <%= render "inc/cloudinit.inc", name: "salt" %>
 
     <% if provider == "openstack" %>
         flavor_name      = "m1.small"
@@ -96,6 +98,7 @@ resource "<%= domain_type %>" "salt" {
 #####################
 
 <%= render "inc/volume.inc", name: "nfs", base_id: "base" %>
+<%= render "inc/cloudinit_def.inc", name: "nfs", hostname: "nfs-server" %>
 
 resource "<%= domain_type %>" "nfs" {
     name = "<%= cluster_prefix %>_nfs"
@@ -103,6 +106,7 @@ resource "<%= domain_type %>" "nfs" {
     <%= render "inc/disk.inc", volume_id: "nfs" %>
     <%= render "inc/net_iface.inc", hostname: "nfs-server", bastion: "salt" %>
     <%= render "inc/domain.inc", hostname: "nfs-server", grains_name: "nfs" %>
+    <%= render "inc/cloudinit.inc", name: "nfs" %>
 }
 
 #####################
@@ -113,6 +117,10 @@ resource "<%= domain_type %>" "nfs" {
     name: "etcd",
     count: etcd_cluster_size,
     base_id: "base" %>
+<%= render "inc/cloudinit_def.inc",
+    name: "etcd",
+    hostname: "etcd",
+    count: etcd_cluster_size %>
 
 resource "<%= domain_type %>" "etcd" {
     count = "<%= etcd_cluster_size %>"
@@ -126,6 +134,7 @@ resource "<%= domain_type %>" "etcd" {
               hostname: "etcd${count.index}",
               grains_name: "etcd",
               salt_master: salt_ref %>
+    <%= render "inc/cloudinit.inc", name: "etcd", count: etcd_cluster_size %>
 }
 
 #####################
@@ -134,10 +143,12 @@ resource "<%= domain_type %>" "etcd" {
 
 <%= render "inc/volume.inc", name: "haproxy", base_id: "base" %>
 <%= render "inc/fip.inc", name: "haproxy" %>
+<%= render "inc/cloudinit_def.inc", name: "haproxy", hostname: "haproxy" %>
 
 resource "<%= domain_type %>" "haproxy" {
     name = "<%= cluster_prefix %>_haproxy"
     depends_on = ["<%= domain_type %>.salt", "<%= domain_type %>.etcd"]
+    <%= render "inc/cloudinit.inc", name: "haproxy" %>
     <%= render "inc/disk.inc", volume_id: "haproxy" %>
     <%= render "inc/net_iface.inc",
               hostname: "haproxy",
@@ -155,6 +166,7 @@ resource "<%= domain_type %>" "haproxy" {
 
 <%= render "inc/fip.inc", name: "kube_master" %>
 <%= render "inc/volume.inc", name: "kube_master", base_id: "base" %>
+<%= render "inc/cloudinit_def.inc", name: "kube_master", hostname: "kube_master" %>
 
 resource "<%= domain_type %>" "kube_master" {
     name = "<%= cluster_prefix %>_master"
@@ -169,6 +181,7 @@ resource "<%= domain_type %>" "kube_master" {
               hostname: "kube-master",
               grains_name: "kube-master",
               salt_master: salt_ref %>
+    <%= render "inc/cloudinit.inc", name: "kube_master" %>
 }
 
 #####################
@@ -179,6 +192,10 @@ resource "<%= domain_type %>" "kube_master" {
     name: "minion",
     count: kube_minions_size,
     base_id: "base" %>
+<%= render "inc/cloudinit_def.inc",
+    name: "minion",
+    hostname: "kube-minion",
+    count: kube_minions_size %>
 
 resource "<%= domain_type %>" "kube_minion" {
     count = "<%= kube_minions_size %>"
@@ -194,4 +211,7 @@ resource "<%= domain_type %>" "kube_minion" {
               hostname: "minion${count.index}",
               grains_name: "kube-minion",
               salt_master: salt_ref %>
+    <%= render "inc/cloudinit.inc",
+        name: "minion",
+        count: kube_minions_size%>
 }

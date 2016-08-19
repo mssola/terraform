@@ -1,8 +1,9 @@
 <% if provider == "libvirt" %>
 
     connection {
+        type     = "ssh"
         user     = "root"
-        password = "vagrant"
+        private_key = "${file("<%= "#{ssh_dir}/id_docker" %>")}"
     }
 
     network_interface {

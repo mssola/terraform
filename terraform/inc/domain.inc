@@ -33,9 +33,6 @@
       <% if exists?("salt_master") %>
       "echo \"master: <%= salt_master %> \" > /tmp/salt/minion.d/minion.conf",
       <% end %>
-      <% if provider == "libvirt" %>
-      "hostnamectl set-hostname <%= hostname %><%= ".${libvirt_network.backend.domain}" unless exists?("bridge")%>",
-      <% end %>
       "bash /tmp/salt/provision-salt-minion.sh",
     ]
   }

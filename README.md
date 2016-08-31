@@ -34,8 +34,8 @@ so running `k8-setup plan` is equivalent to `k8s-setup && terraform plan`.
 
 Some aspects of the cluster can be configured by using variables.
 These variables can be provided to the `k8s-setup` script
-with `-V variable=value` arguments, or through a configuration
-file. See the example files provided in the repository for more
+with `-V variable=value` arguments, or through a _profile
+file_. See the example files provided in the repository for more
 details.
 
 Some important variables are:
@@ -77,6 +77,16 @@ Some important variables are:
 Please take a look at the `*.profile` files for more variables used in
 our templates.
 
+#### Images
+
+One important aspect of the configuration is the image you will use for
+your VMs. This is specially important in some configurations
+
+* they must be prepared for using **cloudinit**
+* when using _libvirt_, they _should_ have the `qemu-agent` installed
+(otherwise they will not work in _bridged mode_)
+* they _should_ be accessible with `user`/`pass`=`root`/`vagrant`
+
 ## Deploying the cluster
 
 Unfortunately there isn't yet a way to bring up the whole cluster with one
@@ -86,7 +96,7 @@ _Terraform_ and then to configure the machines via _Salt_.
 ### Creating the infrastructure
 
 The easiest way to configure your cluster is to use one of the included
-`.profile` configuration file and overwrite the variables you need.
+`.profile` configuration files and overwrite the variables you need.
 Then you can invoke the `k8s-setup` script with any of the commands
 accepted by _Terraform_.
 

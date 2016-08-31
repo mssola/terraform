@@ -80,12 +80,15 @@ our templates.
 #### Images
 
 One important aspect of the configuration is the image you will use for
-your VMs. This is specially important in some configurations
+your VMs. This is specially important in some configurations and is the main
+source of problems, so the recommended solution is to use some of the images
+already provided by the Docker team.
 
-* they must be prepared for using **cloudinit**
+* the image must start the **cloudinit** services automatically.
 * when using _libvirt_, they _should_ have the `qemu-agent` installed
 (otherwise they will not work in _bridged mode_)
-* they _should_ be accessible with `user`/`pass`=`root`/`vagrant`
+* in development environments, they _should_ be accessible with
+ `user`/`pass`=`root`/`vagrant`
 
 ## Deploying the cluster
 

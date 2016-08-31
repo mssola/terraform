@@ -2,19 +2,20 @@
 
 <% if provider == "libvirt" %>
     <% domain_type = "libvirt_domain" %>
+
+    provider "libvirt" {
+        uri = "<%= libvirt_uri %>"
+    }
 <% elsif provider == "openstack" %>
     <% domain_type = "openstack_compute_instance_v2" %>
-<% end %>
 
-<% if provider == "libvirt" %>
-provider "libvirt" {
-    uri = "<%= libvirt_uri %>"
-}
+    provider "openstack" {
+        insecure = "true"
+    }
+<% end %>
 
 <%= render "inc/network.inc", name: "base" %>
 <%= render "inc/volume.inc", name: "base" %>
-
-<% end %>
 
 #####################
 # salt master
@@ -23,6 +24,8 @@ provider "libvirt" {
 <%= render "inc/fip.inc", name: "salt" %>
 <%= render "inc/volume.inc", name: "salt", base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "salt", hostname: "salt-master" %>
+
+<%# TODO: remove the singularities of the salt master and just use the domain.inc file %>
 
 resource "<%= domain_type %>" "salt" {
     name = "<%= cluster_prefix %>_salt"
@@ -33,6 +36,11 @@ resource "<%= domain_type %>" "salt" {
     <% if provider == "openstack" %>
         flavor_name      = "m1.small"
         key_pair         = "<%= key_pair %>"
+
+        security_groups = [
+            "default",
+            "${openstack_compute_secgroup_v2.terraform.name}",
+        ]
     <% end %>
 
     provisioner "remote-exec" {
@@ -111,14 +119,8 @@ resource "<%= domain_type %>" "nfs" {
 # etcd
 #####################
 
-<%= render "inc/volume.inc",
-    name: "etcd",
-    count: etcd_cluster_size,
-    base_id: "base" %>
-<%= render "inc/cloudinit_def.inc",
-    name: "etcd",
-    hostname: "etcd",
-    count: etcd_cluster_size %>
+<%= render "inc/volume.inc", name: "etcd", count: etcd_cluster_size, base_id: "base" %>
+<%= render "inc/cloudinit_def.inc", name: "etcd", hostname: "etcd", count: etcd_cluster_size %>
 
 resource "<%= domain_type %>" "etcd" {
     count = "<%= etcd_cluster_size %>"
@@ -186,14 +188,8 @@ resource "<%= domain_type %>" "kube_master" {
 # kube-minion
 #####################
 
-<%= render "inc/volume.inc",
-    name: "minion",
-    count: kube_minions_size,
-    base_id: "base" %>
-<%= render "inc/cloudinit_def.inc",
-    name: "minion",
-    hostname: "kube-minion",
-    count: kube_minions_size %>
+<%= render "inc/volume.inc", name: "minion", count: kube_minions_size, base_id: "base" %>
+<%= render "inc/cloudinit_def.inc", name: "minion", hostname: "kube-minion", count: kube_minions_size %>
 
 resource "<%= domain_type %>" "kube_minion" {
     count = "<%= kube_minions_size %>"

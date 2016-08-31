@@ -11,6 +11,10 @@
     <% end %>
     key_pair         = "<%= key_pair %>"
 
+    security_groups = [
+        "default",
+        "${openstack_compute_secgroup_v2.terraform.name}",
+    ]
 <% end %>
 
   provisioner "file" {

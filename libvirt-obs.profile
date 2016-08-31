@@ -5,4 +5,4 @@
 # libvirt
 #######################
 volume_base = ""
-volume_source = "http://download.suse.de/ibs/Devel:/Docker:/Images:/terraform:/SLE-12/images/Base-SLES12-SP1-btrfs.x86_64.qcow2"
+volume_source = "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.1/images/Base-openSUSE-Leap-42.1-btrfs.x86_64.qcow2"

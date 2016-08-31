@@ -181,12 +181,3 @@ profile for this cluster. You can read
 [here](https://coreos.com/Kubernetes/docs/latest/configure-kubectl.html) how
 it's possible to configure kubelet.
 
-## Project structure
-
-### Managing the salt subtree
-
-You can pull any new changes in the k8s subtree with:
-
-```
-git subtree pull --prefix salt gitlab@gitlab.suse.de:docker/k8s-salt.git   master --squash
-```

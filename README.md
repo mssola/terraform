@@ -155,6 +155,16 @@ $ ssh -i ssh/id_docker root@`k8s-setup output fip_salt`
 # salt-run state.orchestrate orch.kubernetes
 ```
 
+Notes:
+
+* the certificate generated for the API server includes the list of IPs
+automatically detected by `certs.sh` script. However, this is not enough
+in some cases when the API server will be accessed some other IP
+(for example, when the server is behind a NAT or when it is accessed
+though a _floating IP_ in a _OpenStack_ cluster). In those cases, you should
+specify that IP in the environment variable, `EXTRA_API_SRV_IP`, before
+invoking the `certs.sh` script.
+
 ## Using the cluster
 
 The Kubernetes _api-server_ is publicly available. It can be reached on port `8080`

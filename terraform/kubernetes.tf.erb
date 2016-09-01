@@ -17,6 +17,13 @@
 <%= render "inc/network.inc", name: "base" %>
 <%= render "inc/volume.inc", name: "base" %>
 
+<% if provider == "openstack" %>
+    resource "openstack_compute_keypair_v2" "keypair" {
+      name       = "<%= cluster_prefix %>_keypair"
+      public_key = "${file("<%= ssh_key %>.pub")}"
+    }
+<% end %>
+
 #####################
 # salt master
 #####################
@@ -35,7 +42,7 @@ resource "<%= domain_type %>" "salt" {
 
     <% if provider == "openstack" %>
         flavor_name      = "m1.small"
-        key_pair         = "<%= key_pair %>"
+        key_pair         = "${openstack_compute_keypair_v2.keypair.name}"
 
         security_groups = [
             "default",
@@ -50,7 +57,12 @@ resource "<%= domain_type %>" "salt" {
     }
 
     provisioner "file" {
-        source      = "<%= ssh_dir %>"
+        source      = "<%= ssh_key %>"
+        destination = "/root/.ssh"
+    }
+
+    provisioner "file" {
+        source      = "<%= ssh_key %>.pub"
         destination = "/root/.ssh"
     }
 

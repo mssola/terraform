@@ -9,7 +9,7 @@
     <% else %>
     flavor_name      = "<%= flavor_name %>"
     <% end %>
-    key_pair         = "<%= key_pair %>"
+    key_pair         = "${openstack_compute_keypair_v2.keypair.name}"
 
     security_groups = [
         "default",
@@ -28,7 +28,12 @@
   }
 
   provisioner "file" {
-      source      = "<%= ssh_dir %>"
+      source      = "<%= ssh_key %>"
+      destination = "/root/.ssh"
+  }
+
+  provisioner "file" {
+      source      = "<%= ssh_key %>.pub"
       destination = "/root/.ssh"
   }
 

@@ -8,8 +8,8 @@ cluster_prefix = ""
 # the directory where we hold our Salt files
 salt_dir = ?
 
-# the directory where we hold our ssh keys
-ssh_dir = "ssh"
+# ssh key file (note: a .pub file must also exist)
+ssh_key = "ssh/id_docker"
 
 #######################
 # cluster sizes
@@ -22,7 +22,3 @@ kube_minions_size = 3
 #######################
 # the base image
 openstack_image = "openSUSE-Leap-42.1"
-
-# ssh key pair name and private ssh key file
-key_pair = "docker"
-private_key = "../ssh/id_docker"

@@ -45,9 +45,10 @@ Some important variables are:
     The directory where the Salt scripts are (usually a checkout of [this
     repo](https://gitlab.suse.de/docker/k8s-salt))
 
-  * `ssh_dir`
+  * `ssh_key`
 
-    The directory where the ssh keys are (by default, the local `ssh` directory)
+    `ssh_key` is the key we will use for accessing machines (by default,
+    the `id_docker` in the local `ssh` directory)
 
   * `cluster_prefix`
 
@@ -180,4 +181,3 @@ There's however a more convenient way to use `kubelet`, we can use a dedicated
 profile for this cluster. You can read
 [here](https://coreos.com/Kubernetes/docs/latest/configure-kubectl.html) how
 it's possible to configure kubelet.
-

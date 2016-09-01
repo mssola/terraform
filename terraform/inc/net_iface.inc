@@ -3,7 +3,7 @@
     connection {
         type     = "ssh"
         user     = "root"
-        private_key = "${file("<%= "#{ssh_dir}/id_docker" %>")}"
+        private_key = "${file("<%= ssh_key %>")}"
     }
 
     network_interface {
@@ -19,7 +19,7 @@
 <% elsif provider == "openstack" %>
 
     connection {
-        private_key  = "${file("<%= private_key %>")}"
+        private_key  = "${file("<%= ssh_key %>")}"
         <% if exists? "bastion" %>
         bastion_host = "${openstack_compute_floatingip_v2.fip_<%= bastion %>.address}"
         <% end %>

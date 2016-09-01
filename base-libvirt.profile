@@ -8,8 +8,8 @@ cluster_prefix = ""
 # the directory where we hold our Salt files
 salt_dir = ?
 
-# the directory where we hold our ssh keys
-ssh_dir = "ssh"
+# ssh key file (note: a .pub file must also exist)
+ssh_key = "ssh/id_docker"
 
 #######################
 # cluster sizes

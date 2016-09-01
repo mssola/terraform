@@ -171,8 +171,8 @@ Just execute the following snippet:
 
 ```
 ### Connect to the remote salt server
-$ ssh -i ssh/id_docker root@`k8s-setup output fip_salt`
-### Generate the certificates
+$ ssh -i ssh/id_docker root@`terraform output ip_salt`
+### Generate the certificates if you haven't already (see "Certificates" section)
 # /srv/salt/certs/certs.sh
 ### Execute the orchestrator
 # salt-run state.orchestrate orch.kubernetes
@@ -196,7 +196,7 @@ of the floating IP associated to the `kube-master` node.
 For example:
 
 ```
-$ kubectl -s http://`k8s-setup output fip_kube_master`:8080 get pods
+$ kubectl -s http://`terraform output ip_kube_master`:8080 get pods
 ```
 
 There's however a more convenient way to use `kubelet`, we can use a dedicated

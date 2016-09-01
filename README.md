@@ -148,7 +148,7 @@ Just execute the following snippet:
 
 ```
 ### Connect to the remote salt server
-$ ssh -i ssh/id_docker root@`k8s-setup output fip_salt`
+$ ssh -i ssh/id_docker root@`k8s-setup output ip_salt`
 ### Generate the certificates
 # /srv/salt/certs/certs.sh
 ### Execute the orchestrator
@@ -180,4 +180,3 @@ There's however a more convenient way to use `kubelet`, we can use a dedicated
 profile for this cluster. You can read
 [here](https://coreos.com/Kubernetes/docs/latest/configure-kubectl.html) how
 it's possible to configure kubelet.
-

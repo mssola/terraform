@@ -1,13 +1,13 @@
 <% set("cluster_prefix", "k8s") if !exists?("cluster_prefix") %>
 
 <% if provider == "libvirt" %>
-    <% domain_type = "libvirt_domain" %>
+    <% set("domain_type", "libvirt_domain") %>
 
     provider "libvirt" {
         uri = "<%= libvirt_uri %>"
     }
 <% elsif provider == "openstack" %>
-    <% domain_type = "openstack_compute_instance_v2" %>
+    <% set("domain_type", "openstack_compute_instance_v2") %>
 
     provider "openstack" {
         insecure = "true"
@@ -30,73 +30,8 @@
 
 <%= render "inc/fip.inc", name: "salt" %>
 <%= render "inc/volume.inc", name: "salt", base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "salt", hostname: "salt-master" %>
-
-<%# TODO: remove the singularities of the salt master and just use the domain.inc file %>
-
-resource "<%= domain_type %>" "salt" {
-    name = "<%= cluster_prefix %>_salt"
-    <%= render "inc/disk.inc", volume_id: "salt" %>
-    <%= render "inc/net_iface.inc", hostname: "salt-master", floating_ip: "salt" %>
-    <%= render "inc/cloudinit.inc", name: "salt" %>
-
-    <% if provider == "openstack" %>
-        flavor_name      = "m1.small"
-        key_pair         = "${openstack_compute_keypair_v2.keypair.name}"
-
-        security_groups = [
-            "default",
-            "${openstack_compute_secgroup_v2.terraform.name}",
-        ]
-    <% end %>
-
-    provisioner "remote-exec" {
-      inline = [
-        "mkdir -p /etc/salt/master.d",
-      ]
-    }
-
-    provisioner "file" {
-        source      = "<%= ssh_key %>"
-        destination = "/root/.ssh"
-    }
-
-    provisioner "file" {
-        source      = "<%= ssh_key %>.pub"
-        destination = "/root/.ssh"
-    }
-
-    provisioner "file" {
-        source      = "<%= salt_dir %>/bootstrap/salt"
-        destination = "/tmp"
-    }
-
-    provisioner "file" {
-        source      = "<%= salt_dir %>/salt"
-        destination = "/srv"
-    }
-
-    provisioner "file" {
-        source      = "<%= salt_dir %>/pillar"
-        destination = "/srv"
-    }
-
-    provisioner "file" {
-        source      = "<%= salt_dir %>/salt-conf/"
-        destination = "/etc/salt/master.d"
-    }
-
-    provisioner "remote-exec" {
-        inline = [
-            <% if provider == "libvirt" %>
-            "echo 'infrastructure: \"libvirt\"' >> /srv/salt/pillar/params.sls",
-            <% else %>
-            "echo 'infrastructure: \"cloud\"' >> /srv/salt/pillar/params.sls",
-            <% end %>
-            "bash /tmp/salt/provision-salt-master.sh",
-        ]
-    }
-}
+<%= render "inc/cloudinit_def.inc", name: "salt" %>
+<%= render "inc/domain.inc", name: "salt" %>
 
 <%# we will need to reference this Salt instance later on, but sometimes %>
 <%# with the IP address (openstack) and sometimes with the name (libvirt) %>
@@ -112,112 +47,41 @@ resource "<%= domain_type %>" "salt" {
 <% end %>
 
 #####################
-# NFS server
-#####################
-
-<%= render "inc/volume.inc", name: "nfs", base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "nfs", hostname: "nfs-server" %>
-
-resource "<%= domain_type %>" "nfs" {
-    name = "<%= cluster_prefix %>_nfs"
-    depends_on = ["<%= domain_type %>.salt"]
-    <%= render "inc/disk.inc", volume_id: "nfs" %>
-    <%= render "inc/net_iface.inc", hostname: "nfs-server", bastion: "salt" %>
-    <%= render "inc/domain.inc", hostname: "nfs-server", grains_name: "nfs" %>
-    <%= render "inc/cloudinit.inc", name: "nfs" %>
-}
-
-#####################
 # etcd
 #####################
 
 <%= render "inc/volume.inc", name: "etcd", count: etcd_cluster_size, base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "etcd", hostname: "etcd", count: etcd_cluster_size %>
-
-resource "<%= domain_type %>" "etcd" {
-    count = "<%= etcd_cluster_size %>"
-    name  = "<%= cluster_prefix %>_etcd${count.index}"
-    depends_on = ["<%= domain_type %>.salt"]
-    <%= render "inc/disk.inc", volume_id: "etcd", count: etcd_cluster_size %>
-    <%= render "inc/net_iface.inc",
-              hostname: "etcd${count.index}",
-              bastion: "salt" %>
-    <%= render "inc/domain.inc",
-              hostname: "etcd${count.index}",
-              grains_name: "etcd",
-              salt_master: salt_ref %>
-    <%= render "inc/cloudinit.inc", name: "etcd", count: etcd_cluster_size %>
-}
-
-#####################
-# haproxy
-#####################
-
-<%= render "inc/volume.inc", name: "haproxy", base_id: "base" %>
-<%= render "inc/fip.inc", name: "haproxy" %>
-<%= render "inc/cloudinit_def.inc", name: "haproxy", hostname: "haproxy" %>
-
-resource "<%= domain_type %>" "haproxy" {
-    name = "<%= cluster_prefix %>_haproxy"
-    depends_on = ["<%= domain_type %>.salt", "<%= domain_type %>.etcd"]
-    <%= render "inc/cloudinit.inc", name: "haproxy" %>
-    <%= render "inc/disk.inc", volume_id: "haproxy" %>
-    <%= render "inc/net_iface.inc",
-              hostname: "haproxy",
-              floating_ip: "haproxy",
-              bastion: "salt" %>
-    <%= render "inc/domain.inc",
-              hostname: "haproxy",
-              grains_name: "haproxy",
-              salt_master: salt_ref %>
-}
+<%= render "inc/cloudinit_def.inc", name: "etcd", count: etcd_cluster_size %>
+<%= render "inc/domain.inc",
+    name: "etcd",
+    grains_name: "etcd",
+    depends_on: ["#{domain_type}.salt" ],
+    count: etcd_cluster_size,
+    salt_master: salt_ref %>
 
 #####################
 # kube-master
 #####################
 
-<%= render "inc/fip.inc", name: "kube_master" %>
-<%= render "inc/volume.inc", name: "kube_master", base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "kube_master", hostname: "kube_master" %>
-
-resource "<%= domain_type %>" "kube_master" {
-    name = "<%= cluster_prefix %>_master"
-    depends_on = ["<%= domain_type %>.salt", "<%= domain_type %>.etcd"]
-    <%= render "inc/disk.inc", volume_id: "kube_master" %>
-    <%= render "inc/net_iface.inc",
-              hostname: "kube-master",
-              floating_ip: "kube_master",
-              bastion: "salt" %>
-    <%= render "inc/domain.inc",
-              flavor_name: "m1.medium",
-              hostname: "kube-master",
-              grains_name: "kube-master",
-              salt_master: salt_ref %>
-    <%= render "inc/cloudinit.inc", name: "kube_master" %>
-}
+<%= render "inc/fip.inc", name: "master" %>
+<%= render "inc/volume.inc", name: "master", base_id: "base" %>
+<%= render "inc/cloudinit_def.inc", name: "master" %>
+<%= render "inc/domain.inc",
+    name: "master",
+    grains_name: "kube-master",
+    flavor_name: "m1.medium",
+    depends_on: ["#{domain_type}.salt", "#{domain_type}.etcd" ],
+    salt_master: salt_ref %>
 
 #####################
 # kube-minion
 #####################
 
 <%= render "inc/volume.inc", name: "minion", count: kube_minions_size, base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "minion", hostname: "kube-minion", count: kube_minions_size %>
-
-resource "<%= domain_type %>" "kube_minion" {
-    count = "<%= kube_minions_size %>"
-    name  = "<%= cluster_prefix %>_minion${count.index}"
-    depends_on = ["<%= domain_type %>.salt",
-                  "<%= domain_type %>.kube_master",
-                  "<%= domain_type %>.nfs"]
-    <%= render "inc/disk.inc", volume_id: "minion", count: kube_minions_size %>
-    <%= render "inc/net_iface.inc",
-              hostname: "minion${count.index}",
-              bastion: "salt" %>
-    <%= render "inc/domain.inc",
-              hostname: "minion${count.index}",
-              grains_name: "kube-minion",
-              salt_master: salt_ref %>
-    <%= render "inc/cloudinit.inc",
-        name: "minion",
-        count: kube_minions_size%>
-}
+<%= render "inc/cloudinit_def.inc", name: "minion", count: kube_minions_size %>
+<%= render "inc/domain.inc",
+    name: "minion",
+    grains_name: "kube-minion",
+    depends_on: ["#{domain_type}.salt", "#{domain_type}.master" ],
+    count: kube_minions_size,
+    salt_master: salt_ref %>

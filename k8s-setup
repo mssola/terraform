@@ -62,7 +62,7 @@ class Variables < OpenStruct
     # try to convert the string to some "better" type
     begin
       self[k] = v.is_a?(Integer) ? Integer(v) : v.to_bool
-    rescue ArgumentError
+  rescue NoMethodError, ArgumentError
       self[k] = v
     end
   end
@@ -86,7 +86,9 @@ class Variables < OpenStruct
         contents = File.read(full_path)
         ERB.new(contents).result(cp.instance_eval { binding })
       rescue SyntaxError, NameError => e
-        abort("when processing #{full_path}: #{e}")
+        warning("while evaluating #{full_path}:")
+        warning(e.to_s)
+        abort("cannot continue")
       end
     end
   end
@@ -169,6 +171,7 @@ vars_filenames.each do |vars_filename|
     vars_file.each do |var_line|
       var_line.chomp!
       next if var_line.start_with?("#")
+      next if var_line.nil?
       next if var_line.empty?
       $vars.set_line(var_line)
     end
@@ -193,7 +196,7 @@ abort "#{$vars["terraforms"]} directory does not exist." unless File.directory?(
 # check there are no compulsory variables
 $vars.check
 
-info("generating '#{OUT_FILENAME}'")
+info("generating '#{output_tfs_filename}'")
 dirname = File.dirname(output_tfs_filename)
 FileUtils.mkdir_p(dirname) unless File.directory?(dirname)
 

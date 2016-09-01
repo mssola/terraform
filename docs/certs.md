@@ -5,7 +5,7 @@ You must generate certificates for your Kubernetes components in order to
 use secure connections. You can run the certificates generation script
 in the Salt master with:
 
-    $ ssh -i ssh/id_docker root@`terraform output salt-fip` /srv/salt/certs/certs.sh
+    $ ssh -i ssh/id_docker root@`terraform output ip_salt` /srv/salt/certs/certs.sh
 
 This will prepare the following certificates (that Salt will provision in
 `/etc/kubernetes/ssl/kube-ca`):

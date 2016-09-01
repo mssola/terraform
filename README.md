@@ -12,8 +12,43 @@ The deployment consists of:
   * *kube-master*
   * *kube-minions*: the number of nodes can be configured
 
-A packaged version of Terraform can be found on OBS inside of the
+## Requirements
+
+### Environment
+
+#### Packages
+
+First and foremost, you need [terraform](https://github.com/hashicorp/terraform)
+installed. Plus, if you are using the **libvirt** setup, you will also need the
+[terraform-provider-libvirt](https://github.com/dmacvicar/terraform-provider-libvirt)
+package. These two packages are available on OBS inside of the
 [Virtualization:containers](https://build.opensuse.org/project/show/Virtualization:containers) project.
+
+If you are using the **openstack** method with **cloud.suse.de**, then you need
+to get the internal root certificates from SUSE. You can do this by installing
+the [ca-certificates-suse](https://api.suse.de/package/show/SUSE:CA/ca-certificates-suse)
+package found in the [ibs://SUSE:CA](https://api.suse.de/project/show/SUSE:CA) project.
+
+#### Projects
+
+In order to provision the virtual machines, we use salt. In particular, we have
+our own repository for salt scripts needed for installing a proper Kubernetes
+cluster: https://gitlab.suse.de/docker/k8s-salt. As it's described later in the
+`Variables` section, you may use the `salt_dir` variable to point to a local
+checkout of the `k8s-salt` project.
+
+### Images
+
+One important aspect of the configuration is the image you will use for
+your VMs. This is specially important in some configurations and is the main
+source of problems, so the recommended solution is to use some of the images
+already provided by the Docker team.
+
+* The image must start the **cloudinit** services automatically.
+* When using _libvirt_, they _should_ have the `qemu-agent` installed (otherwise
+  they will not work in _bridged mode_)
+* In development environments, they _should_ be accessible with
+  `user`/`pass`=`root`/`vagrant`
 
 ## Cluster configuration
 
@@ -78,19 +113,6 @@ Some important variables are:
 Please take a look at the `*.profile` files for more variables used in
 our templates.
 
-#### Images
-
-One important aspect of the configuration is the image you will use for
-your VMs. This is specially important in some configurations and is the main
-source of problems, so the recommended solution is to use some of the images
-already provided by the Docker team.
-
-* the image must start the **cloudinit** services automatically.
-* when using _libvirt_, they _should_ have the `qemu-agent` installed
-(otherwise they will not work in _bridged mode_)
-* in development environments, they _should_ be accessible with
- `user`/`pass`=`root`/`vagrant`
-
 ## Deploying the cluster
 
 Unfortunately there isn't yet a way to bring up the whole cluster with one
@@ -149,8 +171,8 @@ Just execute the following snippet:
 
 ```
 ### Connect to the remote salt server
-$ ssh -i ssh/id_docker root@`k8s-setup output fip_salt`
-### Generate the certificates
+$ ssh -i ssh/id_docker root@`terraform output ip_salt`
+### Generate the certificates if you haven't already (see "Certificates" section)
 # /srv/salt/certs/certs.sh
 ### Execute the orchestrator
 # salt-run state.orchestrate orch.kubernetes
@@ -174,7 +196,7 @@ of the floating IP associated to the `kube-master` node.
 For example:
 
 ```
-$ kubectl -s http://`k8s-setup output fip_kube_master`:8080 get pods
+$ kubectl -s http://`terraform output ip_kube_master`:8080 get pods
 ```
 
 There's however a more convenient way to use `kubelet`, we can use a dedicated

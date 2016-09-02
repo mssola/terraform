@@ -44,7 +44,8 @@ your VMs. This is specially important in some configurations and is the main
 source of problems, so the recommended solution is to use some of the images
 already provided by the Docker team.
 
-* The image must start the **cloudinit** services automatically.
+* When enabling *cloudinit*, the image should start the *cloudinit* services
+  automatically.
 * When using _libvirt_, they _should_ have the `qemu-agent` installed (otherwise
   they will not work in _bridged mode_)
 * In development environments, they _should_ be accessible with
@@ -65,7 +66,7 @@ and generate a unique output file (by default, `k8s-setup.tf`). As a
 shortcut, it also runs `terraform` with the last arguments provided,
 so running `k8-setup plan` is equivalent to `k8s-setup && terraform plan`.
 
-### Variables
+### Configuration Variables
 
 Some aspects of the cluster can be configured by using variables.
 These variables can be provided to the `k8s-setup` script
@@ -109,6 +110,14 @@ Some important variables are:
     Name of the bridge interface to use when creating the nodes. This is useful
     when the libvirt host is a remote machine different from the one running
     terraform.
+
+  * `cloudinit`
+
+    When defined to `true` it will enable *cloudinit*. [cloudinit](https://cloudinit.readthedocs.io/en/latest/)
+    is required in some configurations (ie, _libvirt_ with _bridged network_),
+    specially for setting up the DNS names for the VMs. *cloudinit* needs
+    images with the appropriate services running, so make sure this variable
+    matches the image you use for your VMs.
 
 Please take a look at the `*.profile` files for more variables used in
 our templates.

@@ -25,9 +25,9 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% elsif provider == "openstack" %>
 
         <% if !exists? "flavor_name" %>
-        flavor_name      = "m1.small"
+            flavor_name  = "m1.small"
         <% else %>
-        flavor_name      = "<%= flavor_name %>"
+            flavor_name  = "<%= flavor_name %>"
         <% end %>
         key_pair         = "${openstack_compute_keypair_v2.keypair.name}"
 

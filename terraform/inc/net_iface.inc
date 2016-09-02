@@ -1,9 +1,15 @@
 <% if provider == "libvirt" %>
 
     connection {
-        type     = "ssh"
-        user     = "root"
-        private_key = "${file("<%= ssh_key %>")}"
+        type        = "ssh"
+        user        = "root"
+
+        <% if cloudinit %>
+            private_key = "${file("<%= ssh_key %>")}"
+        <% else %>
+            <%# the default for our images: user/pass=root/vagrant %>
+            password = "vagrant"
+        <% end %>
     }
 
     network_interface {

@@ -36,7 +36,7 @@
 <%= render "inc/fip.inc", name: "salt" %>
 <%= render "inc/volume.inc", name: "salt", base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "salt" %>
-<%= render "inc/domain.inc", name: "salt" %>
+<%= render "inc/domain.inc", name: "salt", hostname: "salt-master" %>
 
 <%# we will need to reference this Salt instance later on, but sometimes %>
 <%# with the IP address (openstack) and sometimes with the name (libvirt) %>

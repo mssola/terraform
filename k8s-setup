@@ -2,11 +2,12 @@
 # erbaform: a script for processing Terraform files with ERB
 #
 
-require "optparse"
 require "erb"
-require "logger"
-require "ostruct"
 require "fileutils"
+require "logger"
+require "optparse"
+require "ostruct"
+require 'pathname'
 
 $log = Logger.new(STDOUT)
 $log.level = Logger::INFO
@@ -165,7 +166,7 @@ OptionParser.new do |parser|
   end
 end.parse!
 
-vars_filenames.each do |vars_filename|
+def load_profile(vars_filename)
   info("loading '#{vars_filename}'")
   File.open(vars_filename) do |vars_file|
     vars_file.each do |var_line|
@@ -173,11 +174,22 @@ vars_filenames.each do |vars_filename|
       next if var_line.start_with?("#")
       next if var_line.nil?
       next if var_line.empty?
+      if var_line.start_with?("include")
+          _, included = var_line.split(" ")
+          included.tr!("\"\'", "")
+          included.chomp!
+          if !Pathname.new(included).absolute?
+              dn = File.dirname(vars_filename)
+              included = File.join(dn, included)
+          end
+          load_profile(included)
+      end
       $vars.set_line(var_line)
     end
   end
 end
 
+vars_filenames.each{|vars_filename| load_profile(vars_filename) }
 vars_cmdline.each { |vl| $vars.set_line(vl) }
 
 terraform_path = which("terraform") if terraform_path.nil?

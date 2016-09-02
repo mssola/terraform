@@ -1,5 +1,7 @@
-# prepend the "base-libvirt.profile" with
-# k8s-setup -F base-libvirt.profile -F libvirt-obs.profile
+# Usage:
+# k8s-setup -F libvirt-obs.profile
+
+include "base-libvirt.profile"
 
 #######################
 # libvirt

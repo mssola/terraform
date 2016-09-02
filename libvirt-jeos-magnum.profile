@@ -1,5 +1,7 @@
-# prepend the "base-libvirt.profile" with
-# k8s-setup -F base-libvirt.profile -F libvirt-jeos-magnum.profile
+# Usage:
+# k8s-setup -F libvirt-jeos-magnum.profile
+
+include "base-libvirt.profile"
 
 #######################
 # libvirt

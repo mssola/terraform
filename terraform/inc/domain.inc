@@ -45,14 +45,21 @@ resource "<%= domain_type %>" "<%= name %>" {
         ]
     <% end %>
 
+    provisioner "remote-exec" {
+        inline = [
+            "rm -rf /root/.ssh",
+            "mkdir -p /root/.ssh",
+        ]
+    }
+
     provisioner "file" {
         source      = "<%= ssh_key %>"
-        destination = "/root/.ssh"
+        destination = "/root/.ssh/id_rsa"
     }
 
     provisioner "file" {
         source      = "<%= ssh_key %>.pub"
-        destination = "/root/.ssh"
+        destination = "/root/.ssh/id_rsa.pub"
     }
 
     provisioner "file" {

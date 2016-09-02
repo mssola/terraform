@@ -18,20 +18,20 @@ The deployment consists of:
 
 #### Packages
 
-First and foremost, you need [terraform](https://github.com/hashicorp/terraform)
-installed. Plus, if you are using the **libvirt** setup, you will also need the
+* First and foremost, you need [terraform](https://github.com/hashicorp/terraform)
+installed.
+* When using a **libvirt** environment, you will also need the
 [terraform-provider-libvirt](https://github.com/dmacvicar/terraform-provider-libvirt)
 package. These two packages are available on OBS inside of the
 [Virtualization:containers](https://build.opensuse.org/project/show/Virtualization:containers) project.
-
-If you are using the **openstack** method with **cloud.suse.de**, then you need
+* If you are using an **openstack** environment with **cloud.suse.de**, then you need
 to get the internal root certificates from SUSE. You can do this by installing
 the [ca-certificates-suse](https://api.suse.de/package/show/SUSE:CA/ca-certificates-suse)
 package found in the [ibs://SUSE:CA](https://api.suse.de/project/show/SUSE:CA) project.
 
 #### Projects
 
-In order to provision the virtual machines, we use salt. In particular, we have
+* In order to provision the virtual machines, we use salt. In particular, we have
 our own repository for salt scripts needed for installing a proper Kubernetes
 cluster: https://gitlab.suse.de/docker/k8s-salt. As it's described later in the
 `Variables` section, you may use the `salt_dir` variable to point to a local
@@ -44,7 +44,7 @@ your VMs. This is specially important in some configurations and is the main
 source of problems, so the recommended solution is to use some of the images
 already provided by the Docker team.
 
-* When enabling *cloudinit*, the image should start the *cloudinit* services
+* When using *cloudinit*, the image should start the *cloudinit* services
   automatically.
 * When using _libvirt_, they _should_ have the `qemu-agent` installed (otherwise
   they will not work in _bridged mode_)

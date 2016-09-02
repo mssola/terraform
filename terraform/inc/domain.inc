@@ -102,7 +102,7 @@ resource "<%= domain_type %>" "<%= name %>" {
                     "echo 'infrastructure: \"cloud\"' >> /srv/salt/pillar/params.sls",
                 <% end %>
 
-                "bash /tmp/salt/provision-salt-master.sh",
+                "bash /tmp/salt/provision-salt-master.sh -D -h <%= full_hostname %>",
             ]
         }
 
@@ -119,7 +119,7 @@ resource "<%= domain_type %>" "<%= name %>" {
                     "echo \"master: <%= salt_master %> \" > /tmp/salt/minion.d/minion.conf",
                 <% end %>
 
-                "bash /tmp/salt/provision-salt-minion.sh",
+                "bash /tmp/salt/provision-salt-minion.sh -h <%= full_hostname %>",
             ]
         }
     <% end %>

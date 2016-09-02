@@ -171,44 +171,36 @@ but you can find a step-by-step description of all the certificates needed in
 
 ### Running Salt orchestrator
 
-Once all the virtual machines are up and running it's time to configure them.
-
-We are going to use the [Salt orchestration](https://docs.saltstack.com/en/latest/topics/tutorials/states_pt5.html#orchestrate-runner)
-to implement that.
-
-Just execute the following snippet:
+Once all the virtual machines are up and running it's time to install
+software and configure them. We do that with the help of the [Salt orchestration](https://docs.saltstack.com/en/latest/topics/tutorials/states_pt5.html#orchestrate-runner).
+Just execute:
 
 ```
-### Connect to the remote salt server
-$ ssh -i ssh/id_docker root@`terraform output ip_salt`
-### Generate the certificates if you haven't already (see "Certificates" section)
-# /srv/salt/certs/certs.sh
-### Execute the orchestrator
-# salt-run state.orchestrate orch.kubernetes
+$ ssh -i ssh/id_docker root@`terraform output ip_salt` \
+    bash /tmp/salt/provision-salt-master.sh --finish
 ```
+
+Then follow the instructions given by the provisioning script.
 
 Notes:
 
 * the certificate generated for the API server includes the list of IPs
-automatically detected by `certs.sh` script. However, this is not enough
-in some cases when the API server will be accessed some other IP
-(for example, when the server is behind a NAT or when it is accessed
-though a _floating IP_ in a _OpenStack_ cluster). In those cases, you should
-specify that IP in the environment variable, `EXTRA_API_SRV_IP`, before
-invoking the `certs.sh` script.
+automatically detected by provisioning script. However, this is not enough
+in some cases when the API server will be accessed at some other IP
+(for example, when the server is behind a NAT or when a _floating IP_ is
+assigned to it in a _OpenStack_ cluster). In those cases, you should
+specify that IP in with `--extra-api-ip <IP>`.
 
 ## Using the cluster
 
-The Kubernetes _api-server_ is publicly available. It can be reached on port `8080`
-of the floating IP associated to the `kube-master` node.
+The Kubernetes _API server_ can be used by configuring the `kubectl`
+with a `kubeconfig` file. Copy the `admin.tar` file from the Salt master,
+uncompress it and export the `KUBECONFIG` variable.
 
 For example:
 
 ```
-$ kubectl -s http://`terraform output ip_kube_master`:8080 get pods
+$ scp -i ssh/id_docker root@`terraform output ip_salt`:admin.tar .
+$ tar xvpf admin.tar
+$ KUBECONFIG=kubeconfig kubectl get nodes
 ```
-
-There's however a more convenient way to use `kubelet`, we can use a dedicated
-profile for this cluster. You can read
-[here](https://coreos.com/Kubernetes/docs/latest/configure-kubectl.html) how
-it's possible to configure kubelet.

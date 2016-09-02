@@ -1,11 +1,19 @@
 resource "<%= domain_type %>" "<%= name %>" {
 
+    <% if !exists?("hostname") %>
+        <% set("hostname", name) %>
+    <% end %>
+
     <% if exists?("count") %>
-        <% full_name = "#{cluster_prefix}_#{name}${count.index}" %>
+        <% full_name     = "#{cluster_prefix}_#{name}${count.index}" %>
+        <% full_hostname = "#{hostname}${count.index}" %>
+
         count            = <%= count %>
         name             = "<%= full_name %>"
     <% else %>
-        <% full_name = "#{cluster_prefix}_#{name}" %>
+        <% full_name     = "#{cluster_prefix}_#{name}" %>
+        <% full_hostname = hostname %>
+
         name             = "<%= full_name %>"
     <% end %>
 
@@ -14,7 +22,7 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% end %>
 
     <%= render "disk.inc", volume_id: name %>
-    <%= render "net_iface.inc", hostname: full_name, bastion: "salt" %>
+    <%= render "net_iface.inc", hostname: full_hostname, bastion: "salt" %>
 
     <% if provider == "libvirt" %>
 
@@ -48,8 +56,8 @@ resource "<%= domain_type %>" "<%= name %>" {
     }
 
     provisioner "file" {
-      source      = "<%= salt_dir %>/bootstrap/salt"
-      destination = "/tmp"
+        source      = "<%= salt_dir %>/bootstrap/salt"
+        destination = "/tmp"
     }
 
     <%# provision depends whether this is the Salt master or not %>
@@ -69,9 +77,9 @@ resource "<%= domain_type %>" "<%= name %>" {
         }
 
         provisioner "remote-exec" {
-          inline = [
-            "mkdir -p /etc/salt/master.d",
-          ]
+            inline = [
+                "mkdir -p /etc/salt/master.d",
+            ]
         }
 
         provisioner "file" {
@@ -94,18 +102,18 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% else %>
 
         provisioner "file" {
-          source      = "<%= salt_dir %>/bootstrap/grains/<%= grains_name %>"
-          destination = "/tmp/salt/grains"
+            source      = "<%= salt_dir %>/bootstrap/grains/<%= hostname %>"
+            destination = "/tmp/salt/grains"
         }
 
         provisioner "remote-exec" {
-          inline = [
-            <% if exists?("salt_master") %>
-            "echo \"master: <%= salt_master %> \" > /tmp/salt/minion.d/minion.conf",
-            <% end %>
+            inline = [
+                <% if exists?("salt_master") %>
+                    "echo \"master: <%= salt_master %> \" > /tmp/salt/minion.d/minion.conf",
+                <% end %>
 
-            "bash /tmp/salt/provision-salt-minion.sh",
-          ]
+                "bash /tmp/salt/provision-salt-minion.sh",
+            ]
         }
     <% end %>
 

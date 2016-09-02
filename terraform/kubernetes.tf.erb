@@ -54,7 +54,7 @@
 <%= render "inc/cloudinit_def.inc", name: "etcd", count: etcd_cluster_size %>
 <%= render "inc/domain.inc",
     name: "etcd",
-    grains_name: "etcd",
+    hostname: "etcd",
     depends_on: ["#{domain_type}.salt" ],
     count: etcd_cluster_size,
     salt_master: salt_ref %>
@@ -68,7 +68,7 @@
 <%= render "inc/cloudinit_def.inc", name: "master" %>
 <%= render "inc/domain.inc",
     name: "master",
-    grains_name: "kube-master",
+    hostname: "kube-master",
     flavor_name: "m1.medium",
     depends_on: ["#{domain_type}.salt", "#{domain_type}.etcd" ],
     salt_master: salt_ref %>
@@ -81,7 +81,7 @@
 <%= render "inc/cloudinit_def.inc", name: "minion", count: kube_minions_size %>
 <%= render "inc/domain.inc",
     name: "minion",
-    grains_name: "kube-minion",
+    hostname: "kube-minion",
     depends_on: ["#{domain_type}.salt", "#{domain_type}.master" ],
     count: kube_minions_size,
     salt_master: salt_ref %>

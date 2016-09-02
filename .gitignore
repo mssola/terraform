@@ -8,3 +8,6 @@ osrc.sh
 # some output filenames
 all.tf
 k8s-setup.tf
+
+*.local
+*local*.profile

@@ -1,3 +1,15 @@
+<%#
+  # kubernetes setup template
+  #
+  # some assumptions:
+  #
+  # * nodes that do not have a reference to a salt master
+  #   will be... the salt master.
+  # * there will be a grains file for each node, and the
+  #   file name will match the hostname.
+  #
+%>
+
 <% set("cluster_prefix", "k8s") if !exists?("cluster_prefix") %>
 
 <% if provider == "libvirt" %>
@@ -16,13 +28,6 @@
 
 <%= render "inc/network.inc", name: "base" %>
 <%= render "inc/volume.inc", name: "base" %>
-
-<% if provider == "openstack" %>
-    resource "openstack_compute_keypair_v2" "keypair" {
-      name       = "<%= cluster_prefix %>_keypair"
-      public_key = "${file("<%= ssh_key %>.pub")}"
-    }
-<% end %>
 
 #####################
 # salt master

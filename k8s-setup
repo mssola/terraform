@@ -38,7 +38,11 @@ def info(msg)
 end
 
 def warning(msg)
-  $log.info("#{CYAN}#{msg}#{RESET}")
+  $log.warn("#{CYAN}#{msg}#{RESET}")
+end
+
+def error(msg)
+  $log.error("#{CYAN}#{msg}#{RESET}")
 end
 
 def abort(msg)
@@ -56,16 +60,24 @@ class Variables < OpenStruct
   # doing `k=nil` or `k =""` removes the key `k` from the variables
   def set(k, v)
     return if k.nil? || k.empty?
-    if v.nil? || v.empty?
-      self[k] = ""
-      return
+    begin
+        if v.nil? || v.empty?
+          self[k] = ""
+          return
+        end
+    rescue NoMethodError, ArgumentError
+        # if we cannot process the value, it is definetively not a `k=nil` or `k =""`
     end
     # try to convert the string to some "better" type
     begin
-      self[k] = v.is_a?(Integer) ? Integer(v) : v.to_bool
-  rescue NoMethodError, ArgumentError
-      self[k] = v
+      self[k] = Integer(v)
+    rescue TypeError, ArgumentError
     end
+    begin
+      self[k] = v.to_bool
+    rescue NoMethodError, ArgumentError
+    end
+    self[k] = v
   end
 
   # add a variable from a line like `variable=value`
@@ -87,8 +99,9 @@ class Variables < OpenStruct
         contents = File.read(full_path)
         ERB.new(contents).result(cp.instance_eval { binding })
       rescue SyntaxError, NameError => e
-        warning("while evaluating #{full_path}:")
-        warning(e.to_s)
+        error("while processing #{full_path}:")
+        error(e.to_s)
+        puts e
         abort("cannot continue")
       end
     end

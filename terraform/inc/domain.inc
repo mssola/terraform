@@ -17,10 +17,6 @@ resource "<%= domain_type %>" "<%= name %>" {
         name             = "<%= full_name %>"
     <% end %>
 
-    <% if name == "master" || name == "minion" %>
-       memory = <%= workers_memory %>
-    <% end %>
-
     <% if exists?("depends_on") %>
         depends_on = <%= depends_on %>
     <% end %>
@@ -29,6 +25,12 @@ resource "<%= domain_type %>" "<%= name %>" {
     <%= render "net_iface.inc", hostname: full_hostname, bastion: "salt" %>
 
     <% if provider == "libvirt" %>
+
+        <% if exists?("memory")%>
+            memory = <%= memory %>
+        <% elsif name == "master" || name == "minion" %>
+            memory = <%= workers_memory %>
+        <% end %>
 
         <% if is_uefi_image.to_bool && exists?("firmware")%>
             firmware = "<%= firmware %>"

@@ -11,3 +11,8 @@ k8s-setup.tf
 
 *.local
 *local*.profile
+
+# In this file developers can write a helper wrapper for the k8s-setup
+# script. It's helpful if you don't always remember the options to be used in
+# your current environment.
+*local*.sh

@@ -26,7 +26,7 @@ resource "<%= domain_type %>" "<%= name %>" {
 
     <% if provider == "libvirt" %>
 
-        <% if is_uefi_image %>
+        <% if is_uefi_image && exists?("firmware")%>
             firmware = "<%= firmware %>"
         <% end %>
 

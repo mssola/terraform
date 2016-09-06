@@ -11,6 +11,7 @@
 %>
 
 <% set("cluster_prefix", "k8s") if !exists?("cluster_prefix") %>
+<% set("workers_memory", "512") if !exists?("workers_memory") %>
 
 <% if provider == "libvirt" %>
     <% set("domain_type", "libvirt_domain") %>

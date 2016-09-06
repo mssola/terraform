@@ -119,6 +119,11 @@ Some important variables are:
     images with the appropriate services running, so make sure this variable
     matches the image you use for your VMs.
 
+  * `workers_memory`
+
+    The amount of memory to be assigned to "workers". We account for workers
+    the master and the minion nodes of Kubernetes. It defaults to 512MB.
+
 Please take a look at the `*.profile` files for more variables used in
 our templates.
 

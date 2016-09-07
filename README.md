@@ -119,10 +119,13 @@ Some important variables are:
     images with the appropriate services running, so make sure this variable
     matches the image you use for your VMs.
 
-  * `workers_memory`
+  * `<component name>_memory`
 
-    The amount of memory to be assigned to "workers". We account for workers
-    the master and the minion nodes of Kubernetes. It defaults to 512MB.
+    The amount of memory to be assigned to the given component in MB. Possible
+    options for components are: `etcd`, `master`, `minion` and `salt`. The
+    default value is 512 MB. Moreover, if you want to setup the same value for
+    all of them, you can use the `memory` shortcut. **Note**: this only works
+    for the libvirt setup. Support for openstack is still being worked.
 
 Please take a look at the `*.profile` files for more variables used in
 our templates.

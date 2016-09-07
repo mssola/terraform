@@ -28,8 +28,8 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         <% if exists?("memory")%>
             memory = <%= memory %>
-        <% elsif name == "master" || name == "minion" %>
-            memory = <%= workers_memory %>
+        <% elsif exists?("#{name}_memory") %>
+            memory = <%= eval("#{name}_memory") %>
         <% end %>
 
         <% if is_uefi_image.to_bool && exists?("firmware")%>

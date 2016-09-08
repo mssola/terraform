@@ -4,7 +4,7 @@
         type        = "ssh"
         user        = "root"
 
-        <% if cloudinit %>
+        <% if exists? "cloudinit" %>
             private_key = "${file("<%= ssh_key %>")}"
         <% else %>
             <%# the default for our images: user/pass=root/vagrant %>
@@ -13,7 +13,7 @@
     }
 
     network_interface {
-        <% if exists?("bridge") %>
+        <% if exists? "bridge" %>
             bridge     = "<%= bridge %>"
         <% else %>
             network_id = "${libvirt_network.backend.id}"

@@ -22,17 +22,16 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% end %>
 
     <%= render "disk.inc", volume_id: name %>
-    <%= render "net_iface.inc", hostname: full_hostname, bastion: "salt" %>
 
     <% if provider == "libvirt" %>
 
-        <% if exists?("memory")%>
-            memory = <%= memory %>
-        <% elsif exists?("#{name}_memory") %>
+        <% if exists?("#{name}_memory")%>
             memory = <%= eval("#{name}_memory") %>
+        <% elsif exists?("memory") %>
+            memory = <%= memory %>
         <% end %>
 
-        <% if is_uefi_image.to_bool && exists?("firmware")%>
+        <% if is_uefi_image.to_bool && exists?("firmware") %>
             firmware = "<%= firmware %>"
         <% end %>
 
@@ -79,6 +78,10 @@ resource "<%= domain_type %>" "<%= name %>" {
 
     <% if !exists? "salt_master" %>
 
+        <%# *** salt master *** %>
+
+        <%= render "net_iface.inc", hostname: full_hostname %>
+
         provisioner "file" {
             source      = "<%= salt_dir %>/salt"
             destination = "/srv"
@@ -113,6 +116,10 @@ resource "<%= domain_type %>" "<%= name %>" {
         }
 
     <% else %>
+
+        <%# *** NOT salt master *** %>
+
+        <%= render "net_iface.inc", hostname: full_hostname, bastion: "salt" %>
 
         provisioner "file" {
             source      = "<%= salt_dir %>/bootstrap/grains/<%= hostname %>"

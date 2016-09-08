@@ -37,7 +37,7 @@
 <%= render "inc/fip.inc", name: "salt" %>
 <%= render "inc/volume.inc", name: "salt", base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "salt" %>
-<%= render "inc/domain.inc", name: "salt", hostname: "salt-master" %>
+<%= render "inc/domain.inc", name: "salt", floating_ip: "salt", hostname: "salt-master" %>
 
 <%# we will need to reference this Salt instance later on, but sometimes %>
 <%# with the IP address (openstack) and sometimes with the name (libvirt) %>
@@ -63,6 +63,7 @@
     hostname: "etcd",
     depends_on: ["#{domain_type}.salt" ],
     count: etcd_cluster_size,
+    bastion: "salt",
     salt_master: salt_ref %>
 
 #####################
@@ -76,6 +77,7 @@
     name: "master",
     hostname: "kube-master",
     flavor_name: "m1.medium",
+    floating_ip: "master",
     depends_on: ["#{domain_type}.salt", "#{domain_type}.etcd" ],
     salt_master: salt_ref %>
 
@@ -89,5 +91,6 @@
     name: "minion",
     hostname: "kube-minion",
     depends_on: ["#{domain_type}.salt", "#{domain_type}.master" ],
+    bastion: "salt",
     count: kube_minions_size,
     salt_master: salt_ref %>

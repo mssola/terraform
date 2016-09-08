@@ -22,6 +22,7 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% end %>
 
     <%= render "disk.inc", volume_id: name %>
+    <%= render "net_iface.inc", hostname: full_hostname, floating_ip: floating_ip, bastion: bastion %>
 
     <% if provider == "libvirt" %>
 
@@ -80,8 +81,6 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         <%# *** salt master *** %>
 
-        <%= render "net_iface.inc", hostname: full_hostname %>
-
         provisioner "file" {
             source      = "<%= salt_dir %>/salt"
             destination = "/srv"
@@ -118,8 +117,6 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% else %>
 
         <%# *** NOT salt master *** %>
-
-        <%= render "net_iface.inc", hostname: full_hostname, bastion: "salt" %>
 
         provisioner "file" {
             source      = "<%= salt_dir %>/bootstrap/grains/<%= hostname %>"

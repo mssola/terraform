@@ -22,7 +22,10 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% end %>
 
     <%= render "disk.inc", volume_id: name %>
-    <%= render "net_iface.inc", hostname: full_hostname, floating_ip: floating_ip, bastion: bastion %>
+    <%= render "net_iface.inc",
+        hostname: full_hostname,
+        floating_ip: floating_ip,
+        bastion: bastion %>
 
     <% if provider == "libvirt" %>
 
@@ -38,12 +41,15 @@ resource "<%= domain_type %>" "<%= name %>" {
 
     <% elsif provider == "openstack" %>
 
-        <% if !exists? "flavor_name" %>
-            flavor_name  = "m1.small"
-        <% else %>
+        <% if exists? "#{name}_flavor" %>
+            flavor_name = <%= eval("#{name}_flavor") %>
+        <% elsif exists? "flavor_name" %>
             flavor_name  = "<%= flavor_name %>"
+        <% else %>
+            flavor_name  = "m1.small"
         <% end %>
-        key_pair         = "${openstack_compute_keypair_v2.keypair.name}"
+
+        key_pair         = "<%= cluster_prefix %>_keypair"
 
         security_groups = [
             "default",
@@ -53,8 +59,7 @@ resource "<%= domain_type %>" "<%= name %>" {
 
     provisioner "remote-exec" {
         inline = [
-            "rm -rf /root/.ssh",
-            "mkdir -p /root/.ssh",
+            "[ -d /root/.ssh ] || mkdir -p /root/.ssh",
         ]
     }
 
@@ -104,13 +109,11 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                <% if provider == "libvirt" %>
-                    "echo 'infrastructure: \"libvirt\"' >> /srv/salt/pillar/params.sls",
-                <% else %>
-                    "echo 'infrastructure: \"cloud\"' >> /srv/salt/pillar/params.sls",
+                <% prov_args      = "-D --infra #{infra} -h #{full_hostname}" %>
+                <% if exists? "e2e" %>
+                    <% prov_args  = "#{prov_args} --e2e" %>
                 <% end %>
-
-                "bash /tmp/salt/provision-salt-master.sh -D -h <%= full_hostname %>",
+                "bash /tmp/salt/provision-salt-master.sh <%= prov_args %>",
             ]
         }
 
@@ -125,11 +128,12 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                <% if exists?("salt_master") %>
-                    "echo \"master: <%= salt_master %> \" > /tmp/salt/minion.d/minion.conf",
+                <% prov_args      = "-h #{full_hostname}" %>
+                <% if exists? "salt_master" %>
+                    <% prov_args  = "#{prov_args} --salt-master #{salt_master}" %>
                 <% end %>
 
-                "bash /tmp/salt/provision-salt-minion.sh -h <%= full_hostname %>",
+                "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
             ]
         }
     <% end %>

@@ -6,7 +6,7 @@
   # * nodes that do not have a reference to a salt master
   #   will be... the salt master.
   # * there will be a grains file for each node, and the
-  #   file name will match the hostname.
+  #   file name will match the host name (ie,  kube-minion).
   #
 %>
 
@@ -15,12 +15,14 @@
 
 <% if provider == "libvirt" %>
     <% set("domain_type", "libvirt_domain") %>
+    <% set("infra",       "libvirt") %>
 
     provider "libvirt" {
         uri = "<%= libvirt_uri %>"
     }
 <% elsif provider == "openstack" %>
     <% set("domain_type", "openstack_compute_instance_v2") %>
+    <% set("infra",       "cloud") %>
 
     provider "openstack" {
         insecure = "true"

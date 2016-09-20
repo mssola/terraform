@@ -36,7 +36,6 @@
 # salt master
 #####################
 
-<%= render "inc/fip.inc", name: "salt" %>
 <%= render "inc/volume.inc", name: "salt", base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "salt" %>
 <%= render "inc/domain.inc", name: "salt", floating_ip: "salt", hostname: "salt-master" %>
@@ -44,7 +43,7 @@
 <%# we will need to reference this Salt instance later on, but sometimes %>
 <%# with the IP address (openstack) and sometimes with the name (libvirt) %>
 <% if provider == "openstack" %>
-    <% salt_ref = "${openstack_compute_instance_v2.salt.network.0.fixed_ip_v4}" %>
+    <% salt_ref = "${openstack_compute_instance_v2.salt.access_ip_v4}" %>
 <% elsif provider == "libvirt" %>
     <% if exists?("bridge") %>
         <%# we do not have DNS on bridge mode, so we use a hardcoded IP %>
@@ -72,7 +71,6 @@
 # kube-master
 #####################
 
-<%= render "inc/fip.inc", name: "master" %>
 <%= render "inc/volume.inc", name: "master", base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "master" %>
 <%= render "inc/domain.inc",

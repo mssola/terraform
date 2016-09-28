@@ -150,11 +150,10 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                <% prov_args      = "-h #{full_hostname}" %>
-                <% if exists? "salt_master" %>
-                    <% prov_args  = "#{prov_args} --salt-master #{salt_master}" %>
+                <% prov_args  = "-h #{full_hostname} --salt-master #{salt_master}" %>
+                <% if exists? "docker_reg_mirror" %>
+                    <% prov_args  = "#{prov_args} --docker-reg-mirror #{docker_reg_mirror}" %>
                 <% end %>
-
                 "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
             ]
         }

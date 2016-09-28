@@ -127,6 +127,12 @@ Some important variables are:
     all of them, you can use the `memory` shortcut. **Note**: this only works
     for the libvirt setup. Support for openstack is still being worked.
 
+  * `docker_reg_mirror`
+
+    An (optional) Docker registry mirror (ie, `myserver:5000`). This can be
+    specially helpful when you intend to download many Docker images and
+    bandwidth is scarce.
+
 Please take a look at the `*.profile` files for more variables used in
 our templates.
 

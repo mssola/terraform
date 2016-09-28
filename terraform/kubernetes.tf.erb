@@ -87,10 +87,21 @@
 
 <%= render "inc/volume.inc", name: "minion", count: kube_minions_size, base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "minion", count: kube_minions_size %>
-<%= render "inc/domain.inc",
-    name: "minion",
-    hostname: "kube-minion",
-    depends_on: ["#{domain_type}.salt", "#{domain_type}.master" ],
-    bastion: "salt",
-    count: kube_minions_size,
-    salt_master: salt_ref %>
+
+<% if floating_minions.to_bool %>
+    <%= render "inc/domain.inc",
+        name: "minion",
+        hostname: "kube-minion",
+        depends_on: ["#{domain_type}.salt", "#{domain_type}.master" ],
+        floating_ip: "minion",
+        count: kube_minions_size,
+        salt_master: salt_ref %>
+<% else %>
+    <%= render "inc/domain.inc",
+        name: "minion",
+        hostname: "kube-minion",
+        depends_on: ["#{domain_type}.salt", "#{domain_type}.master" ],
+        bastion: "salt",
+        count: kube_minions_size,
+        salt_master: salt_ref %>
+<% end %>

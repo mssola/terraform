@@ -3,11 +3,18 @@
     <% if provider == "openstack" %>
 
         resource "openstack_compute_floatingip_v2" "fip_<%= name %>" {
+            <% if exists? "count" %>
+                count            = <%= count %>
+            <% end %>
             pool = "floating"
         }
 
         output "fip_<%= name %>" {
-            value = "${openstack_compute_floatingip_v2.fip_<%= name %>.address}"
+            <% if exists? "count" %>
+                value = "${join(",",openstack_compute_floatingip_v2.fip_<%= name %>.*.address)}"
+            <% else %>
+                value = "${openstack_compute_floatingip_v2.fip_<%= name %>.address}"
+            <% end %>
         }
 
     <% elsif provider == "libvirt" %>
@@ -22,11 +29,11 @@
 
 resource "<%= domain_type %>" "<%= name %>" {
 
-    <% if !exists?("hostname") %>
+    <% if !exists? "hostname" %>
         <% set("hostname", name) %>
     <% end %>
 
-    <% if exists?("count") %>
+    <% if exists? "count" %>
         <% full_name     = "#{cluster_prefix}_#{name}${count.index}" %>
         <% full_hostname = "#{hostname}${count.index}" %>
 
@@ -39,19 +46,20 @@ resource "<%= domain_type %>" "<%= name %>" {
         name             = "<%= full_name %>"
     <% end %>
 
-    <% if exists?("depends_on") %>
+    <% if exists? "depends_on" %>
         depends_on = <%= depends_on %>
     <% end %>
 
     <%= render "disk.inc", volume_id: name %>
     <%= render "net_iface.inc",
         hostname: full_hostname,
+        count: count,
         floating_ip: floating_ip,
         bastion: bastion %>
 
     <% if provider == "libvirt" %>
 
-        <% if exists?("#{name}_memory")%>
+        <% if exists? "#{name}_memory" %>
             memory = <%= eval("#{name}_memory") %>
         <% elsif exists?("memory") %>
             memory = <%= memory %>

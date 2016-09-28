@@ -37,7 +37,11 @@
         name               = "fixed"
 
         <% if exists? "floating_ip" %>
-            floating_ip    = "${openstack_compute_floatingip_v2.fip_<%= floating_ip %>.address}"
+            <% if exists? "count" %>
+                floating_ip = "${element(openstack_compute_floatingip_v2.fip_<%= floating_ip %>.*.address, count.index)}"
+            <% else %>
+                floating_ip    = "${openstack_compute_floatingip_v2.fip_<%= floating_ip %>.address}"
+            <% end %>
             access_network = "true"
         <% end %>
     }

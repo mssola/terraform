@@ -65,7 +65,7 @@ resource "<%= domain_type %>" "<%= name %>" {
             memory = <%= memory %>
         <% end %>
 
-        <% if is_uefi_image.to_bool && exists?("firmware") %>
+        <% if enabled?("is_uefi_image") && exists?("firmware") %>
             firmware = "<%= firmware %>"
         <% end %>
 
@@ -143,7 +143,7 @@ resource "<%= domain_type %>" "<%= name %>" {
 
                 <%# depending on some variables, we set some flags in the Salt master %>
                 <%# that will be translated to data in the Salt pillar... %>
-                <% if exists? "e2e" %>
+                <% if enabled? "e2e" %>
                     <% prov_args  = "#{prov_args} --e2e" %>
                 <% end %>
                 <% if exists? "docker_reg_mirror" %>

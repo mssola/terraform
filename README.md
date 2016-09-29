@@ -190,8 +190,6 @@ software and configure them. We do that with the help of the [Salt orchestration
 Just execute:
 
 ```
-# Make sure that the SSH key is only accessible by you, otherwise ssh will complain
-$ chmod 0400 ssh/id_docker
 $ ssh -i ssh/id_docker root@`terraform output ip_salt` \
     bash /tmp/salt/provision-salt-master.sh --finish
 ```

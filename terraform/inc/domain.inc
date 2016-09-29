@@ -143,6 +143,9 @@ resource "<%= domain_type %>" "<%= name %>" {
                 <% if exists? "e2e" %>
                     <% prov_args  = "#{prov_args} --e2e" %>
                 <% end %>
+                <% if exists? "docker_reg_mirror" %>
+                    <% prov_args  = "#{prov_args} --docker-reg-mirror #{docker_reg_mirror}" %>
+                <% end %>
                 "bash /tmp/salt/provision-salt-master.sh <%= prov_args %>",
             ]
         }
@@ -159,9 +162,6 @@ resource "<%= domain_type %>" "<%= name %>" {
         provisioner "remote-exec" {
             inline = [
                 <% prov_args  = "-h #{full_hostname} --salt-master #{salt_master}" %>
-                <% if exists? "docker_reg_mirror" %>
-                    <% prov_args  = "#{prov_args} --docker-reg-mirror #{docker_reg_mirror}" %>
-                <% end %>
                 "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
             ]
         }

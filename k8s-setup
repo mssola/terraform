@@ -56,6 +56,15 @@ class Variables < OpenStruct
     !self[k].nil? && !self[k].to_s.empty?
   end
 
+  # true if the variable exists and it is true
+  def enabled?(k)
+    begin
+      self.exists?(k) && self[k].to_bool
+    rescue NoMethodError, ArgumentError
+      false
+    end
+  end
+
   # set a variable
   # doing `k=nil` or `k =""` removes the key `k` from the variables
   def set(k, v)

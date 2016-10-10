@@ -88,7 +88,7 @@
 <%= render "inc/volume.inc", name: "minion", count: kube_minions_size, base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "minion", count: kube_minions_size %>
 
-<% if floating_minions.to_bool %>
+<% if enabled? "floating_minions" %>
     <%= render "inc/domain.inc",
         name: "minion",
         hostname: "kube-minion",

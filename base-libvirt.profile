@@ -12,10 +12,9 @@ salt_dir = ?
 ssh_key = "ssh/id_docker"
 
 #######################
-# cluster sizes
+# cluster size
 #######################
-etcd_cluster_size = 3
-kube_minions_size = 3
+kube_minions_size = 1
 
 #######################
 # libvirt

@@ -54,20 +54,6 @@
 <% end %>
 
 #####################
-# etcd
-#####################
-
-<%= render "inc/volume.inc", name: "etcd", count: etcd_cluster_size, base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "etcd", count: etcd_cluster_size %>
-<%= render "inc/domain.inc",
-    name: "etcd",
-    hostname: "etcd",
-    depends_on: ["#{domain_type}.salt" ],
-    count: etcd_cluster_size,
-    bastion: "salt",
-    salt_master: salt_ref %>
-
-#####################
 # kube-master
 #####################
 

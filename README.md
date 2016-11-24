@@ -8,7 +8,6 @@ or [libvirt](http://libvirt.org/). This is not using
 The deployment consists of:
 
   * *salt server*: used to configure all the nodes
-  * *etcd cluster*: the number of nodes can be configured
   * *kube-master*
   * *kube-minions*: the number of nodes can be configured
 
@@ -89,16 +88,11 @@ Some important variables are:
   * `cluster_prefix`
 
     By default all the VMs provisioned by Terraform are going to be named in the
-    same way (eg: `kube-master`, `etcd1`, `etcd2`,...). This makes impossible for
-    multiple people to deploy a Kubernetes cluster on the same cloud.
+    same way (eg: `kube-master`, `kube-minion1`, `kube-minion2`,...). This makes
+    impossible for multiple people to deploy a Kubernetes cluster on the same cloud.
 
     This can be solved by setting the `cluster_prefix` variable to something like
     `flavio-`.
-
-  * `etcd_cluster_size`
-
-    By default the etcd cluster is composed by 3 nodes. However it's possible to
-    change the default value by using the `etcd_cluster_size` variable.
 
   * `kube_minions_size`
 
@@ -122,10 +116,10 @@ Some important variables are:
   * `<component name>_memory`
 
     The amount of memory to be assigned to the given component in MB. Possible
-    options for components are: `etcd`, `master`, `minion` and `salt`. The
-    default value is 512 MB. Moreover, if you want to setup the same value for
-    all of them, you can use the `memory` shortcut. **Note**: this only works
-    for the libvirt setup. Support for openstack is still being worked.
+    options for components are: `master`, `minion` and `salt`. The default value
+    is 512 MB. Moreover, if you want to setup the same value for all of them,
+    you can use the `memory` shortcut. **Note**: this only works for the libvirt
+    setup. Support for openstack is still being worked.
 
   * `docker_reg_mirror`
 

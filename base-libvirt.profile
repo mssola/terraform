@@ -14,7 +14,7 @@ ssh_key = "ssh/id_docker"
 #######################
 # cluster size
 #######################
-kube_minions_size = 1
+kube_minions_size = 3
 
 #######################
 # libvirt

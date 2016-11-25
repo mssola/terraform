@@ -106,7 +106,7 @@ class Variables < OpenStruct
     Dir.chdir(File.dirname(full_path)) do
       begin
         contents = File.read(full_path)
-        ERB.new(contents).result(cp.instance_eval { binding })
+        ERB.new(contents).result(cp.instance_eval { binding }).gsub /^\s*$\n/, ''
       rescue SyntaxError, NameError => e
         error("while processing #{full_path}:")
         error(e.to_s)

@@ -94,6 +94,12 @@ Some important variables are:
     This can be solved by setting the `cluster_prefix` variable to something like
     `flavio-`.
 
+  * `cluster_domain_name`
+
+    The cluster default domain name. It can be something like `k8s.local`. This
+    domain name will be used across all the instances. If it is empty then all
+    nodes will be named after their plain hostname (no FQDN).
+
   * `kube_minions_size`
 
     By default the k8s cluster has 3 k8s minions. However it's possible to

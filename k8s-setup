@@ -50,10 +50,21 @@ def abort(msg)
   exit(1)
 end
 
+class Object
+  def blank?
+    respond_to?(:empty?) ? !!empty? : !self
+  end
+end
+
 class Variables < OpenStruct
   # true if the variable is defined and not empty
   def exists?(k)
     !self[k].nil? && !self[k].to_s.empty?
+  end
+
+  # return `hostname`.`cluster_domain_name` or `hostname` if `cluster_domain_name` is blank
+  def fqdn_or_hostname(hostname)
+    [hostname, cluster_domain_name].reject(&:blank?).join(".")
   end
 
   # true if the variable exists and it is true

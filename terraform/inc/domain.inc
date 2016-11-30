@@ -35,13 +35,13 @@ resource "<%= domain_type %>" "<%= name %>" {
 
     <% if exists? "count" %>
         <% full_name     = "#{cluster_prefix}_#{name}${count.index}" %>
-        <% full_hostname = "#{hostname}${count.index}" %>
+        <% full_hostname = fqdn_or_hostname("#{hostname}${count.index}") %>
 
         count            = <%= count %>
         name             = "<%= full_name %>"
     <% else %>
         <% full_name     = "#{cluster_prefix}_#{name}" %>
-        <% full_hostname = hostname %>
+        <% full_hostname = fqdn_or_hostname(hostname) %>
 
         name             = "<%= full_name %>"
     <% end %>
@@ -139,7 +139,7 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                <% prov_args      = "-D --infra #{infra} -h #{full_hostname}" %>
+                <% prov_args      = "-D --infra #{infra}" %>
 
                 <%# depending on some variables, we set some flags in the Salt master %>
                 <%# that will be translated to data in the Salt pillar... %>
@@ -164,7 +164,7 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                <% prov_args  = "-h #{full_hostname} --salt-master #{salt_master}" %>
+                <% prov_args  = "--salt-master #{salt_master}" %>
                 "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
             ]
         }

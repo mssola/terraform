@@ -54,7 +54,7 @@
         }
     }
 
-<% elsif provider == "libvirt" && !exists?("bridge")%>
+<% elsif provider == "libvirt" && !exists?("bridge") %>
 
     resource "libvirt_network" "backend" {
         name      = "<%= cluster_prefix %>net"
@@ -65,7 +65,7 @@
             mode      = "nat"
         <% end %>
 
-        domain        = "<%= cluster_prefix %>.local"
+        domain        = "<%= cluster_domain_name.blank? ? "#{cluster_prefix}.local" : cluster_domain_name %>"
 
         <% if exists?("net_cidr") %>
             addresses = ["<%= net_cidr %>"]

@@ -97,8 +97,7 @@ Some important variables are:
   * `cluster_domain_name`
 
     The cluster default domain name. It can be something like `k8s.local`. This
-    domain name will be used across all the instances. If it is empty then all
-    nodes will be named after their plain hostname (no FQDN).
+    domain name will be used across all the instances.
 
   * `kube_minions_size`
 

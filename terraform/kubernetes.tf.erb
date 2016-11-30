@@ -10,8 +10,9 @@
   #
 %>
 
-<% set("cluster_prefix", "k8s") if !exists? "cluster_prefix" %>
-<% set("memory", "512")         if !exists? "memory" %>
+<% set("cluster_prefix", "k8s")            if !exists? "cluster_prefix" %>
+<% set("cluster_domain_name", "k8s.local") if !exists? "cluster_domain_name" %>
+<% set("memory", "512")                    if !exists? "memory" %>
 
 <% if provider == "libvirt" %>
     <% set("domain_type", "libvirt_domain") %>
@@ -49,7 +50,7 @@
         <%# we do not have DNS on bridge mode, so we use a hardcoded IP %>
         <% salt_ref = "${libvirt_domain.salt.network_interface.0.addresses.0}" %>
     <% else %>
-        <% salt_ref = fqdn_or_hostname("salt-master") %>
+        <% salt_ref = fqdn("salt-master") %>
     <% end %>
 <% end %>
 

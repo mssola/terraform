@@ -65,7 +65,7 @@
             mode      = "nat"
         <% end %>
 
-        domain        = "<%= cluster_domain_name.blank? ? "#{cluster_prefix}.local" : cluster_domain_name %>"
+        domain        = "<%= cluster_domain_name %>"
 
         <% if exists?("net_cidr") %>
             addresses = ["<%= net_cidr %>"]

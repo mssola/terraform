@@ -43,8 +43,8 @@ your VMs. This is specially important in some configurations and is the main
 source of problems, so the recommended solution is to use some of the images
 already provided by the Docker team.
 
-* When using *cloudinit*, the image should start the *cloudinit* services
-  automatically.
+* Since we rely on *cloudinit*, the image should start the *cloudinit* services
+  automatically. The minimum cloud-init version supported is 0.7.7.
 * When using _libvirt_, they _should_ have the `qemu-agent` installed (otherwise
   they will not work in _bridged mode_)
 * In development environments, they _should_ be accessible with
@@ -109,14 +109,6 @@ Some important variables are:
     Name of the bridge interface to use when creating the nodes. This is useful
     when the libvirt host is a remote machine different from the one running
     terraform.
-
-  * `cloudinit`
-
-    When defined to `true` it will enable *cloudinit*. [cloudinit](https://cloudinit.readthedocs.io/en/latest/)
-    is required in some configurations (ie, _libvirt_ with _bridged network_),
-    specially for setting up the DNS names for the VMs. *cloudinit* needs
-    images with the appropriate services running, so make sure this variable
-    matches the image you use for your VMs.
 
   * `<component name>_memory`
 

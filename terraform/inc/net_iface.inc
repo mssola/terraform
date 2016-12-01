@@ -3,13 +3,7 @@
     connection {
         type        = "ssh"
         user        = "root"
-
-        <% if exists? "cloudinit" %>
-            private_key = "${file("<%= ssh_key %>")}"
-        <% else %>
-            <%# the default for our images: user/pass=root/vagrant %>
-            password = "vagrant"
-        <% end %>
+        private_key = "${file("<%= ssh_key %>")}"
     }
 
     network_interface {

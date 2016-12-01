@@ -35,13 +35,13 @@ resource "<%= domain_type %>" "<%= name %>" {
 
     <% if exists? "count" %>
         <% full_name     = "#{cluster_prefix}_#{name}${count.index}" %>
-        <% full_hostname = fqdn_or_hostname("#{hostname}${count.index}") %>
+        <% full_hostname = fqdn("#{hostname}${count.index}") %>
 
         count            = <%= count %>
         name             = "<%= full_name %>"
     <% else %>
         <% full_name     = "#{cluster_prefix}_#{name}" %>
-        <% full_hostname = fqdn_or_hostname(hostname) %>
+        <% full_hostname = fqdn(hostname) %>
 
         name             = "<%= full_name %>"
     <% end %>

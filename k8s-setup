@@ -56,9 +56,14 @@ class Variables < OpenStruct
     !self[k].nil? && !self[k].to_s.empty?
   end
 
+  # strips leading and trailing dots if provided from cluster_domain_name
+  def sane_cluster_domain_name
+    cluster_domain_name.gsub(/^\.*/, '').gsub(/\.*$/, '')
+  end
+
   # return `hostname`.`cluster_domain_name`
   def fqdn(hostname)
-    "#{hostname}.#{cluster_domain_name}"
+    "#{hostname}.#{sane_cluster_domain_name}"
   end
 
   # true if the variable exists and it is true

@@ -145,9 +145,11 @@ end
 
 # find an executable in the PATH
 def which(cmd)
-  ENV["PATH"].split(File::PATH_SEPARATOR).each do |path|
-    exe = File.join(path, cmd)
-    return exe if File.executable?(exe) && !File.directory?(exe)
+  exe = `which #{cmd}`
+  if $?.success?
+    return exe
+  else
+    return nil
   end
 end
 

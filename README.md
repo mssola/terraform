@@ -65,6 +65,14 @@ and generate a unique output file (by default, `k8s-setup.tf`). As a
 shortcut, it also runs `terraform` with the last arguments provided,
 so running `k8-setup plan` is equivalent to `k8s-setup && terraform plan`.
 
+### Helper script for libvirt
+
+You should be using the `k8s-setup` script to manage your Kubernetes
+cluster. That being said, if you are going to use the `libvirt` driver, you
+might want to take a look at the [k8s-libvirt](contrib/libvirt/k8s-libvirt.sh)
+script. This script assumes that you want to use libvirt, and it makes some
+assumptions that will allow you to deploy your cluster with a simple command.
+
 ### Configuration Variables
 
 Some aspects of the cluster can be configured by using variables.

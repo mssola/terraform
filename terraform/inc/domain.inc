@@ -108,13 +108,7 @@ resource "<%= domain_type %>" "<%= name %>" {
         destination = "/tmp"
     }
 
-    <%# provision depends whether this is the Salt master or not %>
-    <%# we make that distinction with the "salt_master" argument: %>
-    <%# a node with no "salt_master" is the salt master %>
-
-    <% if !exists? "salt_master" %>
-
-        <%# *** salt master *** %>
+    <% if enabled? "is_master" %>
 
         provisioner "file" {
             source      = "<%= salt_dir %>/salt"
@@ -153,22 +147,19 @@ resource "<%= domain_type %>" "<%= name %>" {
             ]
         }
 
-    <% else %>
-
-        <%# *** NOT salt master *** %>
-
-        provisioner "file" {
-            source      = "<%= salt_dir %>/bootstrap/grains/<%= hostname %>"
-            destination = "/tmp/salt/grains"
-        }
-
-        provisioner "remote-exec" {
-            inline = [
-                <% prov_args  = "--salt-master #{salt_master}" %>
-                "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
-            ]
-        }
     <% end %>
+
+    provisioner "file" {
+        source      = "<%= salt_dir %>/bootstrap/grains/<%= hostname %>"
+        destination = "/tmp/salt/grains"
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            <% prov_args  = "--salt-master #{salt_master}" %>
+            "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
+        ]
+    }
 
     <%= render "cloudinit.inc", name: name, count: count %>
 }

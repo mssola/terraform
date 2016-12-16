@@ -68,11 +68,9 @@ class Variables < OpenStruct
 
   # true if the variable exists and it is true
   def enabled?(k)
-    begin
-      self.exists?(k) && self[k].to_bool
-    rescue NoMethodError, ArgumentError
-      false
-    end
+    self.exists?(k) && (self[k].is_a?(TrueClass) || self[k].to_bool)
+  rescue NoMethodError, ArgumentError
+    false
   end
 
   # set a variable
@@ -90,10 +88,12 @@ class Variables < OpenStruct
     # try to convert the string to some "better" type
     begin
       self[k] = Integer(v)
+      return
     rescue TypeError, ArgumentError
     end
     begin
       self[k] = v.to_bool
+      return
     rescue NoMethodError, ArgumentError
     end
     self[k] = v

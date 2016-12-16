@@ -39,7 +39,7 @@
 
 <%= render "inc/volume.inc", name: "salt", base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "salt" %>
-<%= render "inc/domain.inc", name: "salt", floating_ip: "salt", hostname: "salt-master" %>
+<%= render "inc/domain.inc", name: "salt", floating_ip: "salt", hostname: "salt" %>
 
 <%# we will need to reference this Salt instance later on, but sometimes %>
 <%# with the IP address (openstack) and sometimes with the name (libvirt) %>
@@ -50,7 +50,7 @@
         <%# we do not have DNS on bridge mode, so we use a hardcoded IP %>
         <% salt_ref = "${libvirt_domain.salt.network_interface.0.addresses.0}" %>
     <% else %>
-        <% salt_ref = fqdn("salt-master") %>
+        <% salt_ref = fqdn("salt") %>
     <% end %>
 <% end %>
 

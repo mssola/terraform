@@ -3,8 +3,6 @@
   #
   # some assumptions:
   #
-  # * nodes that do not have a reference to a salt master
-  #   will be... the salt master.
   # * there will be a grains file for each node, and the
   #   file name will match the host name (ie,  kube-minion).
   #
@@ -34,28 +32,28 @@
 <%= render "inc/volume.inc", name: "base" %>
 
 #####################
-# salt master
+# dashboard
 #####################
 
-<%= render "inc/volume.inc", name: "salt", base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "salt" %>
+<%= render "inc/volume.inc", name: "dashboard", base_id: "base" %>
+<%= render "inc/cloudinit_def.inc", name: "dashboard" %>
 <%= render "inc/domain.inc",
-    name: "salt",
-    floating_ip: "salt",
-    hostname: "salt",
+    name: "dashboard",
+    floating_ip: "dashboard",
+    hostname: "dashboard",
     salt_master: "127.0.0.1",
-    is_master: true %>
+    is_dashboard: true %>
 
-<%# we will need to reference this Salt instance later on, but sometimes %>
+<%# we will need to reference this dashboard later on, but sometimes %>
 <%# with the IP address (openstack) and sometimes with the name (libvirt) %>
 <% if provider == "openstack" %>
-    <% salt_ref = "${openstack_compute_instance_v2.salt.access_ip_v4}" %>
+    <% dashboard_ref = "${openstack_compute_instance_v2.dashboard.access_ip_v4}" %>
 <% elsif provider == "libvirt" %>
     <% if exists?("bridge") %>
         <%# we do not have DNS on bridge mode, so we use a hardcoded IP %>
-        <% salt_ref = "${libvirt_domain.salt.network_interface.0.addresses.0}" %>
+        <% dashboard_ref = "${libvirt_domain.dashboard.network_interface.0.addresses.0}" %>
     <% else %>
-        <% salt_ref = fqdn("salt") %>
+        <% dashboard_ref = fqdn("dashboard") %>
     <% end %>
 <% end %>
 
@@ -70,8 +68,8 @@
     hostname: "master",
     flavor_name: "m1.medium",
     floating_ip: "master",
-    depends_on: ["#{domain_type}.salt"],
-    salt_master: salt_ref %>
+    depends_on: ["#{domain_type}.dashboard"],
+    salt_master: dashboard_ref %>
 
 #####################
 # kube-minion
@@ -84,16 +82,16 @@
     <%= render "inc/domain.inc",
         name: "minion",
         hostname: "minion",
-        depends_on: ["#{domain_type}.salt", "#{domain_type}.master"],
+        depends_on: ["#{domain_type}.dashboard", "#{domain_type}.master"],
         floating_ip: "minion",
         count: kube_minions_size,
-        salt_master: salt_ref %>
+        salt_master: dashboard_ref %>
 <% else %>
     <%= render "inc/domain.inc",
         name: "minion",
         hostname: "minion",
-        depends_on: ["#{domain_type}.salt", "#{domain_type}.master"],
-        bastion: "salt",
+        depends_on: ["#{domain_type}.dashboard", "#{domain_type}.master"],
+        bastion: "dashboard",
         count: kube_minions_size,
-        salt_master: salt_ref %>
+        salt_master: dashboard_ref %>
 <% end %>

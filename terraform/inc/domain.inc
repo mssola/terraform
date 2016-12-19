@@ -108,7 +108,7 @@ resource "<%= domain_type %>" "<%= name %>" {
         destination = "/tmp"
     }
 
-    <% if enabled? "is_master" %>
+    <% if enabled? "is_dashboard" %>
 
         provisioner "file" {
             source      = "<%= salt_dir %>/salt"
@@ -143,7 +143,7 @@ resource "<%= domain_type %>" "<%= name %>" {
                 <% if exists? "docker_reg_mirror" %>
                     <% prov_args  = "#{prov_args} --docker-reg-mirror #{docker_reg_mirror}" %>
                 <% end %>
-                "bash /tmp/salt/provision-salt-master.sh <%= prov_args %>",
+                "bash /tmp/salt/provision-dashboard.sh <%= prov_args %>",
             ]
         }
 

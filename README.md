@@ -207,7 +207,7 @@ uncompress it and export the `KUBECONFIG` variable.
 For example:
 
 ```
-$ scp -i ssh/id_docker root@`terraform output ip_salt`:admin.tar .
+$ scp -i ssh/id_docker root@`terraform output ip_dashboard`:admin.tar .
 $ tar xvpf admin.tar
 $ KUBECONFIG=kubeconfig kubectl get nodes
 ```

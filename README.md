@@ -176,12 +176,6 @@ $ ./k8s-setup -F base-openstack.profile fmt
 
 and then run any `terraform` command with this file.
 
-### Certificates
-
-Regular users should just run the `/srv/salt/certs/certs.sh` script (see below),
-but you can find a step-by-step description of all the certificates needed in
-[this document](docs/certs.md).
-
 ### Running Salt orchestrator
 
 Once all the virtual machines are up and running it's time to install

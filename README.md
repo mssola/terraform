@@ -183,8 +183,8 @@ software and configure them. We do that with the help of the [Salt orchestration
 Just execute:
 
 ```
-$ ssh -i ssh/id_docker root@`terraform output ip_salt` \
-    bash /tmp/salt/provision-salt-master.sh --finish
+$ ssh -i ssh/id_docker root@`terraform output ip_dashboard` \
+    bash /tmp/salt/provision-dashboard.sh --finish
 ```
 
 Then follow the instructions given by the provisioning script.

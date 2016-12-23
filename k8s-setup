@@ -269,7 +269,7 @@ File.open(output_tfs_filename, File::CREAT | File::TRUNC | File::RDWR) do |all_t
 end
 
 if !ARGV.empty?
-    cmd = ([terraform_path] + ARGV).join(" ")
+    cmd = ([terraform_path] + ARGV).map(&:strip).join(" ")
     debug("running: '#{cmd}'")
     Dir.chdir($vars["work_dir"])
     exec(cmd)

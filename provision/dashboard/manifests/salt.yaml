@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: salt
+  labels:
+    name: salt
+spec:
+  hostNetwork: true
+  containers:
+  - name: salt-master
+    image: ereslibre/salt-master:latest
+    volumeMounts:
+    - mountPath: /etc/salt/master.d
+      name: salt-master-config
+    - mountPath: /srv/salt
+      name: salt-master
+    - mountPath: /srv/pillar
+      name: salt-pillar
+  - name: salt-minion-ca
+    image: ereslibre/salt-minion:latest
+    volumeMounts:
+    - mountPath: /etc/salt/minion.d
+      name: salt-minion-config
+    - mountPath: /etc/salt/minion.d/signing_policies.conf
+      name: salt-minion-ca-config
+    - mountPath: /etc/salt/grains
+      name: salt-minion-grain
+  volumes:
+    - name: salt-minion-config
+      hostPath:
+        path: /tmp/salt/minion.d
+    - name: salt-minion-ca-config
+      hostPath:
+        path: /srv/salt/ca/signing_policies.conf
+    - name: salt-master-config
+      hostPath:
+        path: /tmp/salt/master.d
+    - name: salt-minion-grain
+      hostPath:
+        path: /tmp/salt/grains/ca
+    - name: salt-master
+      hostPath:
+        path: /srv/salt
+    - name: salt-pillar
+      hostPath:
+        path: /srv/pillar

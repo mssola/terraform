@@ -103,16 +103,26 @@ resource "<%= domain_type %>" "<%= name %>" {
         destination = "/root/.ssh/id_rsa.pub"
     }
 
-    provisioner "file" {
-        source      = "<%= salt_dir %>/bootstrap/salt"
-        destination = "/tmp"
-    }
-
     <% if enabled? "is_dashboard" %>
+
+        provisioner "file" {
+            source      = "provision/dashboard/provision-dashboard.sh"
+            destination = "/tmp/provision-dashboard.sh"
+        }
+
+        provisioner "file" {
+            source      = "provision/dashboard/salt"
+            destination = "/tmp"
+        }
 
         provisioner "file" {
             source      = "<%= salt_dir %>/salt"
             destination = "/srv"
+        }
+
+        provisioner "file" {
+            source      = "<%= salt_dir %>/bootstrap/grains"
+            destination = "/tmp/salt/grains"
         }
 
         provisioner "file" {
@@ -122,18 +132,18 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                "mkdir -p /etc/salt/master.d",
+                "[ -d /etc/kubernetes/manifests ] || mkdir -p /etc/kubernetes/manifests",
             ]
         }
 
         provisioner "file" {
-            source      = "<%= salt_dir %>/salt-conf/"
-            destination = "/etc/salt/master.d"
+            source      = "provision/dashboard/manifests/"
+            destination = "/etc/kubernetes/manifests"
         }
 
         provisioner "remote-exec" {
             inline = [
-                <% prov_args      = "-D --infra #{infra}" %>
+                <% prov_args      = "--infra #{infra}" %>
 
                 <%# depending on some variables, we set some flags in the Salt master %>
                 <%# that will be translated to data in the Salt pillar... %>
@@ -143,23 +153,30 @@ resource "<%= domain_type %>" "<%= name %>" {
                 <% if exists? "docker_reg_mirror" %>
                     <% prov_args  = "#{prov_args} --docker-reg-mirror #{docker_reg_mirror}" %>
                 <% end %>
-                "bash /tmp/salt/provision-dashboard.sh <%= prov_args %>",
+                "bash /tmp/provision-dashboard.sh <%= prov_args %>",
+            ]
+        }
+
+    <% else %>
+
+        provisioner "file" {
+            source      = "<%= salt_dir %>/bootstrap/salt"
+            destination = "/tmp"
+        }
+
+        provisioner "file" {
+            source      = "<%= salt_dir %>/bootstrap/grains/<%= hostname %>"
+            destination = "/tmp/salt/grains"
+        }
+
+        provisioner "remote-exec" {
+            inline = [
+                <% prov_args  = "--salt-master #{salt_master}" %>
+                "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
             ]
         }
 
     <% end %>
-
-    provisioner "file" {
-        source      = "<%= salt_dir %>/bootstrap/grains/<%= hostname %>"
-        destination = "/tmp/salt/grains"
-    }
-
-    provisioner "remote-exec" {
-        inline = [
-            <% prov_args  = "--salt-master #{salt_master}" %>
-            "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
-        ]
-    }
 
     <%= render "cloudinit.inc", name: name, count: count %>
 }

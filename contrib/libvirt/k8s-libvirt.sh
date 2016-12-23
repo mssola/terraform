@@ -70,22 +70,18 @@ fi
 
 notify-send "The infrastructure is up, running Salt!"
 
-# Salt
-ssh -i ssh/id_docker \
-    -o "StrictHostKeyChecking no" \
-    root@`terraform output ip_salt` \
-    salt-run state.orchestrate orch.kubernetes
-
-# Obtain the admin.tar file from the master and tell the user how to use it.
+# Salt + obtain the admin.tar file.
 
 ssh -i ssh/id_docker \
     -o "StrictHostKeyChecking no" \
-    root@`terraform output ip_salt` \
-    bash /tmp/salt/provision-salt-master.sh --finish
+    -o "UserKnownHostsFile /dev/null" \
+    root@`terraform output ip_dashboard` \
+    bash /tmp/provision-dashboard.sh --finish
 
 scp -i ssh/id_docker \
     -o "StrictHostKeyChecking no" \
-    root@`terraform output ip_salt`:admin.tar .
+    -o "UserKnownHostsFile /dev/null" \
+    root@`terraform output ip_dashboard`:admin.tar .
 
 tar xvpf admin.tar
 

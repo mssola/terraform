@@ -121,11 +121,6 @@ resource "<%= domain_type %>" "<%= name %>" {
         }
 
         provisioner "file" {
-            source      = "<%= salt_dir %>/bootstrap/grains"
-            destination = "/tmp/salt/grains"
-        }
-
-        provisioner "file" {
             source      = "<%= salt_dir %>/pillar"
             destination = "/srv"
         }
@@ -160,19 +155,24 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% else %>
 
         provisioner "file" {
-            source      = "<%= salt_dir %>/bootstrap/salt"
+            source      = "provision/minion/provision-salt-minion.sh"
+            destination = "/tmp/provision-salt-minion.sh"
+        }
+
+        provisioner "file" {
+            source      = "provision/minion/salt"
             destination = "/tmp"
         }
 
         provisioner "file" {
-            source      = "<%= salt_dir %>/bootstrap/grains/<%= hostname %>"
+            source      = "provision/minion/salt/all-grains/<%= hostname %>"
             destination = "/tmp/salt/grains"
         }
 
         provisioner "remote-exec" {
             inline = [
                 <% prov_args  = "--salt-master #{salt_master}" %>
-                "bash /tmp/salt/provision-salt-minion.sh <%= prov_args %>",
+                "bash /tmp/provision-salt-minion.sh <%= prov_args %>",
             ]
         }
 

@@ -28,13 +28,13 @@ spec:
   volumes:
     - name: salt-minion-config
       hostPath:
-        path: /tmp/salt/minion.d
+        path: /tmp/salt/config/minion.d
     - name: salt-minion-ca-config
       hostPath:
         path: /srv/salt/ca/signing_policies.conf
     - name: salt-master-config
       hostPath:
-        path: /tmp/salt/master.d
+        path: /tmp/salt/config/master.d
     - name: salt-minion-grain
       hostPath:
         path: /tmp/salt/grains/ca

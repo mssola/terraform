@@ -1,4 +1,4 @@
-# The `k8s-full` script
+# The `k8s-libvirt` script
 
 This script wraps the `k8s-setup` script by applying some default values and
 performing some checks. Moreover this script also performs the needed salt calls
@@ -10,8 +10,8 @@ With all this mind, the workflow for setting up a Kubernetes cluster is as
 follows:
 
 ```
-$ ./k8s-full apply
-$ export KUBECONFIG=kubeconfig
+$ contrib/libvirt/k8s-libvirt.sh apply
+$ export KUBECONFIG=cluster-config/kubeconfig
 $ kubectl get nodes
 ```
 
@@ -33,9 +33,9 @@ Some weird things:
   that's not the case, you can provide the `SALT_PATH` environment variable.
 - The path to the image to be used is taken from the `IMAGE_PATH` environment
   variable. If this is not defined, a SLE12 image will be downloaded and used.
-- All nodes (except the salt master) are given 2GiB of RAM memory by default.
-  We consider this to be a good default for regular deployments. You can change
-  that with the `MASTER_MEMORY` and `MINION_MEMORY` environment variables.
+- All nodes are given 2GiB of RAM memory by default. We consider this to be a
+  good default for regular deployments. You can change that with the
+  `MASTER_MEMORY` and `MINION_MEMORY` environment variables.
 - We are using 2 minion nodes. You can change this with the `MINIONS_SIZE`
   environment variable.
 

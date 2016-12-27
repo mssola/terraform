@@ -11,6 +11,9 @@ k8s-setup.tf
 
 *.tgz
 
+*.qcow2
+/cluster-config/*
+
 *.local
 *local*.sh
 *local*.profile

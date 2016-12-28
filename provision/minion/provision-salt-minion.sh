@@ -42,6 +42,7 @@ cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 
 log "Installing the Salt minion"
 zypper $ZYPPER_GLOBAL_ARGS in --force-resolution --no-recommends salt-minion
+[ $? -eq 0 ] || abort "could not install Salt minion"
 
 if [ -n "$SALT_MASTER" ] ; then
     log "Setting salt master: $SALT_MASTER"
@@ -58,31 +59,15 @@ cp -v $TMP_SALT_ROOT/config/minion.d/*  /etc/salt/minion.d
 [ -z $SKIP_ROLE_ASSIGNMENTS ] && cp -v $TMP_SALT_ROOT/grains /etc/salt/
 
 log "Enabling & starting the Salt minion"
-systemctl enable salt-minion
-systemctl start salt-minion
+systemctl enable salt-minion || abort "could not enable Salt minion"
+systemctl start salt-minion  || abort "could not start Salt minion"
 
 log "Salt minion config file:"
 log "------------------------------"
 cat /etc/salt/minion.d/minion.conf || abort "no salt minion configuration"
 log "------------------------------"
-
 sleep 2
 log "Salt minion status:"
 log "------------------------------"
 systemctl status -l salt-minion || abort "salt minion is not running"
 log "------------------------------"
-
-#TIMEOUT=90
-#COUNT=0
-#while [ ! -f /etc/salt/pki/minion/minion_master.pub ]; do
-#    echo "Waiting for salt minion to start"
-#    if [ "$COUNT" -ge "$TIMEOUT" ]; then
-#        echo "minion_master.pub not detected by timeout"
-#        exit 1
-#    fi
-#    sleep 5
-#    COUNT=$((COUNT+5))
-#done
-#
-#echo "Calling highstate"
-#salt-call state.highstate

@@ -7,15 +7,19 @@ abort() { log "FATAL: $1" ; exit 1 ; }
 DEBUG=
 FINISH=
 E2E=
-INFRA=cloud
+INFRA="cloud"
 DOCKER_REG_MIRROR=
 CONTAINER_START_TIMEOUT=300
 SALT_ROOT=/srv
+SALT_ORCH_FLAGS=
 CONFIG_OUT_DIR=/root
 
 # the hostname and port where the API server will be listening at
 API_SERVER_DNS_NAME="master"
 API_SERVER_PORT=6443
+
+# an (optional) extra IP for the API server (usually a floating IP)
+API_SERVER_IP=
 
 # we will add some pillars in the master...
 PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
@@ -25,6 +29,8 @@ K8S_MANIFESTS=/etc/kubernetes/manifests
 
 # global args for running zypper
 ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
+
+########################################################################
 
 # repository information
 source /etc/os-release
@@ -42,6 +48,10 @@ while [ $# -gt 0 ] ; do
     --debug)
       set -x
       DEBUG=1
+      SALT_ORCH_FLAGS="$SALT_ORCH_FLAGS -l debug"
+      ;;
+    --color)
+      SALT_ORCH_FLAGS="$SALT_ORCH_FLAGS --force-color"
       ;;
     -r|--root)
       SALT_ROOT=$2
@@ -65,8 +75,12 @@ while [ $# -gt 0 ] ; do
       INFRA=$2
       shift
       ;;
-    --extra-api-ip)
-      export EXTRA_API_SRV_IP=$2
+    -D|--dashboard)
+      DASHBOARD_REF=$2
+      shift
+      ;;
+    --api-server-ip)
+      API_SERVER_IP=$2
       shift
       ;;
     --api-server-name)
@@ -84,6 +98,7 @@ done
 
 add_pillar() {
     log "Pillar: setting $1=\"$2\""
+    mkdir -p $(dirname $PILLAR_PARAMS_FILE)
     cat <<-PARAM_SETTING >> "$PILLAR_PARAMS_FILE"
 
 # parameter set by $0
@@ -93,13 +108,15 @@ PARAM_SETTING
 }
 
 wait_for_container() {
-  COUNT=0
-  until docker ps | grep -v pause | grep $1 &> /dev/null;
-  do
+  local count=0
+  until docker ps | grep -v pause | grep "$1" &> /dev/null ; do
       log "Waiting for $2 container to start"
-      [ "$COUNT" -lt "$CONTAINER_START_TIMEOUT" ] || abort "Container $2 didn't start, giving up..."
+      if [ "$count" -gt "$CONTAINER_START_TIMEOUT" ] ; then
+        docker ps
+        abort "Container $2 didn't start, giving up..."
+      fi
       sleep 5
-      COUNT=$((COUNT+5))
+      count=$((count+5))
   done
   log "$2 container is up"
 }
@@ -109,15 +126,23 @@ if [ -z "$FINISH" ] ; then
     chmod 600 /root/.ssh/*
     cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 
+    # TODO: these lines should go in the etcd discovery rpm
+    mkdir -p /var/run/etcd
+
+    log "Setting some Pillars..."
+    [ -n "$INFRA"             ] && add_pillar infrastructure "$INFRA"
+    [ -n "$DASHBOARD_REF"     ] && add_pillar dashboard "$DASHBOARD_REF"
+    [ -n "$E2E"               ] && add_pillar e2e true
+    [ -n "$DOCKER_REG_MIRROR" ] && add_pillar docker_registry_mirror "$DOCKER_REG_MIRROR"
+
     log "Adding containers repository"
-    zypper $ZYPPER_GLOBAL_ARGS ar -Gf $CONTAINERS_REPO containers || abort "could not enable containers repo"
+    zypper $ZYPPER_GLOBAL_ARGS ar -Gf "$CONTAINERS_REPO" containers || abort "could not enable containers repo"
 
     log "Installing kubernetes-node"
     zypper $ZYPPER_GLOBAL_ARGS in -y kubernetes-node bind-utils || abort "could not install packages"
 
-    # TODO: this would have to be removed
-    mkdir -p $K8S_MANIFESTS
-    echo "KUBELET_ARGS=\"--config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
+    # TODO: this would have to be removed...
+    echo "KUBELET_ARGS=\"--v=2 --config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
 
     # Set persistent storage for salt master container
     mkdir -p /tmp/salt/master-pki
@@ -128,12 +153,9 @@ if [ -z "$FINISH" ] ; then
     systemctl enable {docker,kubelet}.service || abort "could not enable service"
 
     # Wait for containers to be ready
-    wait_for_container "salt-master" "salt master"
+    wait_for_container "etcd-discovery" "etcd (discovery)"
+    wait_for_container "salt-master"    "salt master"
     wait_for_container "salt-minion-ca" "certificate authority"
-
-    add_pillar infrastructure "$INFRA"
-    [ -n "$E2E"               ] && add_pillar e2e true
-    [ -n "$DOCKER_REG_MIRROR" ] && add_pillar docker_registry_mirror "$DOCKER_REG_MIRROR"
 else
     SALT_MASTER=`docker ps | grep -v pause | grep salt-master | awk '{print $1}'`
     CA_CONTAINER=`docker ps | grep -v pause | grep salt-minion-ca | awk '{print $1}'`
@@ -142,15 +164,12 @@ else
     [ -n "$CA_CONTAINER" ] || abort "could not get certificate authority container"
 
     log "Running orchestration on salt master container ($SALT_MASTER)"
-    [ -n "$DEBUG" ] && ORCHESTRATION_FLAGS="-l debug"
-    docker exec $SALT_MASTER salt-run $ORCHESTRATION_FLAGS state.orchestrate orch.kubernetes
+    docker exec "$SALT_MASTER" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes
     [ $? -eq 0 ] || abort "salt-run did not succeed"
 
-    if [ -n "$EXTRA_API_SRV_IP" ] ; then
-        API_SERVER_IP=$EXTRA_API_SRV_IP
-    else
+    if [ -z "$API_SERVER_IP" ] ; then
         API_SERVER_IP=$(host "$API_SERVER_DNS_NAME" | grep "has address" | awk '{print $NF}')
-        [ -n "$API_SERVER_IP" ] || abort "could not determine the IP of the API server by resolving $API_SERVER_DNS_NAME: you must provide it with --extra-api-ip"
+        [ -n "$API_SERVER_IP" ] || abort "could not determine the IP of the API server by resolving $API_SERVER_DNS_NAME: you must provide it with --api-server-ip"
     fi
 
     log "Generating a 'kubeconfig' file"
@@ -177,13 +196,13 @@ users:
 EOF
 
     log "Creating admin.tar with config files and certificates"
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null master:/etc/pki/minion.{crt,key} $CONFIG_OUT_DIR
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null master:/etc/pki/minion.{crt,key} "$CONFIG_OUT_DIR"
     [ $? -eq 0 ] || abort "could not copy file from master"
 
-    mv -f $CONFIG_OUT_DIR/minion.crt $CONFIG_OUT_DIR/admin.crt
-    mv -f $CONFIG_OUT_DIR/minion.key $CONFIG_OUT_DIR/admin.key
+    mv -f "$CONFIG_OUT_DIR/minion.crt" "$CONFIG_OUT_DIR/admin.crt"
+    mv -f "$CONFIG_OUT_DIR/minion.key" "$CONFIG_OUT_DIR/admin.key"
 
-    docker cp $CA_CONTAINER:/etc/pki/ca.crt $CONFIG_OUT_DIR/ca.crt
+    docker cp "$CA_CONTAINER:/etc/pki/ca.crt" "$CONFIG_OUT_DIR/ca.crt"
     [ $? -eq 0 ] || abort "could not copy file from $CA_CONTAINER"
 
     cd "$CONFIG_OUT_DIR" && tar cvpf admin.tar admin.crt admin.key ca.crt kubeconfig

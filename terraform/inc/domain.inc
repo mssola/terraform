@@ -142,10 +142,13 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                <% prov_args      = "--infra #{infra}" %>
-
                 <%# depending on some variables, we set some flags in the Salt master %>
                 <%# that will be translated to data in the Salt pillar... %>
+
+                <% prov_args  = "--dashboard #{dashboard_ref}" %>
+                <% if exists? "infra" %>
+                    <% prov_args  = "--infra #{infra}" %>
+                <% end %>
                 <% if enabled? "e2e" %>
                     <% prov_args  = "#{prov_args} --e2e" %>
                 <% end %>

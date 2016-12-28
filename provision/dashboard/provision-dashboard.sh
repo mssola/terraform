@@ -12,10 +12,14 @@ DOCKER_REG_MIRROR=
 CONTAINER_START_TIMEOUT=90
 SALT_ROOT=/srv
 CONFIG_OUT_DIR=/root
+BASE_CONTAINERS_REPO=http://download.opensuse.org/repositories/Virtualization:/containers
 
 # the hostname and port where the API server will be listening at
 API_SERVER_DNS_NAME="master"
 API_SERVER_PORT=6443
+
+# we will add some pillars in the master...
+PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
 
 # kubernetes manifests location for the kubelet
 K8S_MANIFESTS=/etc/kubernetes/manifests
@@ -25,7 +29,15 @@ ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
 
 # repository information
 source /etc/os-release
-CONTAINERS_REPO=http://download.opensuse.org/repositories/Virtualization:/containers/openSUSE_Leap_$VERSION_ID
+case $NAME in
+  "SLES" )
+    tail_repo="SLE_$(echo $VERSION | tr "-" "_")"
+    ;;
+  *)
+    tail_repo="$(echo $PRETTY_NAME | tr " " "_")"
+    ;;
+esac
+CONTAINERS_REPO=$BASE_CONTAINERS_REPO/$tail_repo
 
 while [ $# -gt 0 ] ; do
   case $1 in
@@ -72,9 +84,6 @@ done
 
 ###################################################################
 
-# some dirs and files in the salt master
-PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
-
 add_pillar() {
     log "Pillar: setting $1=\"$2\""
     cat <<-PARAM_SETTING >> "$PILLAR_PARAMS_FILE"
@@ -103,17 +112,17 @@ if [ -z "$FINISH" ] ; then
     cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 
     log "Adding containers repository"
-    zypper $ZYPPER_GLOBAL_ARGS ar -Gf $CONTAINERS_REPO containers
+    zypper $ZYPPER_GLOBAL_ARGS ar -Gf $CONTAINERS_REPO containers || abort "could not enable containers repo"
 
     log "Installing kubernetes-node"
-    zypper $ZYPPER_GLOBAL_ARGS in -y kubernetes-node bind-utils
+    zypper $ZYPPER_GLOBAL_ARGS in -y kubernetes-node bind-utils || abort "could not install packages"
 
+    # TODO: this would have to be removed
     mkdir -p $K8S_MANIFESTS
-
     echo "KUBELET_ARGS=\"--config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
 
-    systemctl start {docker,kubelet}.service
-    systemctl enable {docker,kubelet}.service
+    systemctl start {docker,kubelet}.service  || abort "could not start service"
+    systemctl enable {docker,kubelet}.service || abort "could not enable service"
 
     # Wait for containers to be ready
     wait_for_container "salt-master" "salt master"
@@ -126,13 +135,12 @@ else
     SALT_MASTER=`docker ps | grep -v pause | grep salt-master | awk '{print $1}'`
     CA_CONTAINER=`docker ps | grep -v pause | grep salt-minion-ca | awk '{print $1}'`
 
-    [ -n "$SALT_MASTER" ] || abort "could not get salt master container"
+    [ -n "$SALT_MASTER"  ] || abort "could not get salt master container"
     [ -n "$CA_CONTAINER" ] || abort "could not get certificate authority container"
 
     log "Running orchestration on salt master container ($SALT_MASTER)"
     [ -n "$DEBUG" ] && ORCHESTRATION_FLAGS="-l debug"
     docker exec $SALT_MASTER salt-run $ORCHESTRATION_FLAGS state.orchestrate orch.kubernetes
-
     [ $? -eq 0 ] || abort "salt-run did not succeed"
 
     if [ -n "$EXTRA_API_SRV_IP" ] ; then
@@ -166,12 +174,15 @@ users:
 EOF
 
     log "Creating admin.tar with config files and certificates"
-    {
-        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null master:/etc/pki/minion.{crt,key} $CONFIG_OUT_DIR
-        mv $CONFIG_OUT_DIR/minion.crt $CONFIG_OUT_DIR/admin.crt
-        mv $CONFIG_OUT_DIR/minion.key $CONFIG_OUT_DIR/admin.key
-        docker cp $CA_CONTAINER:/etc/pki/ca.crt $CONFIG_OUT_DIR/ca.crt
-    }
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null master:/etc/pki/minion.{crt,key} $CONFIG_OUT_DIR
+    [ $? -eq 0 ] || abort "could not copy file from master"
+
+    mv -f $CONFIG_OUT_DIR/minion.crt $CONFIG_OUT_DIR/admin.crt
+    mv -f $CONFIG_OUT_DIR/minion.key $CONFIG_OUT_DIR/admin.key
+
+    docker cp $CA_CONTAINER:/etc/pki/ca.crt $CONFIG_OUT_DIR/ca.crt
+    [ $? -eq 0 ] || abort "could not copy file from $CA_CONTAINER"
+
     cd "$CONFIG_OUT_DIR" && tar cvpf admin.tar admin.crt admin.key ca.crt kubeconfig
     [ -f admin.tar ] || abort "admin.tar not generated"
 

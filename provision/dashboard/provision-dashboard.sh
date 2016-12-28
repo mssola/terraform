@@ -112,8 +112,8 @@ wait_for_container() {
   until docker ps | grep -v pause | grep "$1" &> /dev/null ; do
       log "Waiting for $2 container to start"
       if [ "$count" -gt "$CONTAINER_START_TIMEOUT" ] ; then
-        docker ps
-        abort "Container $2 didn't start, giving up..."
+          [ -n "$DEBUG" ] && docker ps
+          abort "Container $2 didn't start, giving up..."
       fi
       sleep 5
       count=$((count+5))

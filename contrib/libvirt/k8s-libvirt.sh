@@ -13,7 +13,7 @@ CLUSTER_CONF_DIR=$(pwd)/cluster-config
 MASTER_MEMORY=${MASTER_MEMORY:-2048}
 MINIONS_SIZE=${MINIONS_SIZE:-2}
 MINION_MEMORY=${MINION_MEMORY:-2048}
-FLAVOUR=${FLAVOUR:-"opensuse"}
+FLAVOUR=${FLAVOUR:-"sles"}
 
 # If the project is like "k8s-terraform-stable", then the prefix is `stable`.
 # Otherwise, we stick to the current username.

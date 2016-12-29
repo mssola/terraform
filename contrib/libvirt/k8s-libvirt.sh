@@ -59,8 +59,7 @@ if [ "$1" == "apply" ]; then
     sudo systemctl start libvirtd.service virtlogd.socket virtlockd.socket || :
 fi
 
-# Always in debug mode.
-export TF_LOG=debug
+[ -n "$TF_DEBUG" ] && export TF_LOG=debug
 
 # Go kubes go!
 ./k8s-setup \

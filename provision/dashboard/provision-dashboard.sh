@@ -12,7 +12,6 @@ DOCKER_REG_MIRROR=
 CONTAINER_START_TIMEOUT=90
 SALT_ROOT=/srv
 CONFIG_OUT_DIR=/root
-BASE_CONTAINERS_REPO=http://download.opensuse.org/repositories/Virtualization:/containers
 
 # the hostname and port where the API server will be listening at
 API_SERVER_DNS_NAME="master"
@@ -31,13 +30,12 @@ ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
 source /etc/os-release
 case $NAME in
   "SLES" )
-    tail_repo="SLE_$(echo $VERSION | tr "-" "_")"
+    CONTAINERS_REPO="http://download.suse.de/ibs/Devel:/Docker/SLE_$(echo -n $VERSION_ID | cut -d. -f1)"
     ;;
   *)
-    tail_repo="$(echo $PRETTY_NAME | tr " " "_")"
+    CONTAINERS_REPO="http://download.opensuse.org/repositories/Virtualization:/containers/$(echo -n $PRETTY_NAME | tr " " "_")"
     ;;
 esac
-CONTAINERS_REPO=$BASE_CONTAINERS_REPO/$tail_repo
 
 while [ $# -gt 0 ] ; do
   case $1 in

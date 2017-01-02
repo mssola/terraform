@@ -38,6 +38,8 @@ Some weird things:
   `MASTER_MEMORY` and `MINION_MEMORY` environment variables.
 - We are using 2 minion nodes. You can change this with the `MINIONS_SIZE`
   environment variable.
+- If you want to run the terraform provisioning in debug mode, you can export
+  the `TF_DEBUG` environment variable set to any value.
 
 ## Libvirt setup
 

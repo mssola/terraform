@@ -10,6 +10,7 @@ fi
 CLUSTER_CONF_DIR=$(pwd)/cluster-config
 
 # Variables for master and minion nodes.
+DASHBOARD_MEMORY=${DASHBOARD_MEMORY:-2048}
 MASTER_MEMORY=${MASTER_MEMORY:-2048}
 MINIONS_SIZE=${MINIONS_SIZE:-2}
 MINION_MEMORY=${MINION_MEMORY:-2048}
@@ -67,6 +68,7 @@ fi
     -F libvirt-obs.profile \
     -V salt_dir="$SALT_PATH" \
     -V cluster_prefix=$prefix \
+    -V dashboard_memory=$DASHBOARD_MEMORY \
     -V master_memory=$MASTER_MEMORY \
     -V kube_minions_size=$MINIONS_SIZE \
     -V minion_memory=$MINION_MEMORY \

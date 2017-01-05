@@ -10,6 +10,8 @@ spec:
   - name: salt-master
     image: ereslibre/salt-master:latest
     volumeMounts:
+    - mountPath: /etc/salt/pki
+      name: salt-master-pki
     - mountPath: /etc/salt/master.d
       name: salt-master-config
     - mountPath: /srv/salt
@@ -28,25 +30,25 @@ spec:
   - name: salt-minion-ca
     image: ereslibre/salt-minion:latest
     volumeMounts:
+    - mountPath: /etc/salt/minion_id
+      name: salt-minion-ca-id
+    - mountPath: /etc/pki
+      name: salt-pki
+    - mountPath: /etc/salt/pki
+      name: salt-minion-ca-pki
     - mountPath: /etc/salt/minion.d
-      name: salt-minion-config
-    - mountPath: /etc/salt/minion.d/signing_policies.conf
       name: salt-minion-ca-config
+    - mountPath: /etc/salt/minion.d/signing_policies.conf
+      name: salt-minion-ca-signing-policies
     - mountPath: /etc/salt/grains
-      name: salt-minion-grain
+      name: salt-minion-ca-grains
   volumes:
-    - name: salt-minion-config
+    - name: salt-master-pki
       hostPath:
-        path: /tmp/salt/config/minion.d
-    - name: salt-minion-ca-config
-      hostPath:
-        path: /srv/salt/ca/signing_policies.conf
+        path: /tmp/salt/master-pki
     - name: salt-master-config
       hostPath:
         path: /tmp/salt/config/master.d
-    - name: salt-minion-grain
-      hostPath:
-        path: /tmp/salt/grains/ca
     - name: salt-master
       hostPath:
         path: /srv/salt
@@ -56,3 +58,21 @@ spec:
     - name: salt-sock-dir
       hostPath:
         path: /var/run/salt/master
+    - name: salt-minion-ca-id
+      hostPath:
+        path: /tmp/salt/minion-ca-id
+    - name: salt-pki
+      hostPath:
+        path: /etc/pki
+    - name: salt-minion-ca-pki
+      hostPath:
+        path: /tmp/salt/minion-ca-pki
+    - name: salt-minion-ca-config
+      hostPath:
+        path: /tmp/salt/config/minion.d
+    - name: salt-minion-ca-signing-policies
+      hostPath:
+        path: /srv/salt/ca/signing_policies.conf
+    - name: salt-minion-ca-grains
+      hostPath:
+        path: /tmp/salt/grains/ca

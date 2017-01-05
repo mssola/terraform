@@ -119,6 +119,11 @@ if [ -z "$FINISH" ] ; then
     mkdir -p $K8S_MANIFESTS
     echo "KUBELET_ARGS=\"--config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
 
+    # Set persistent storage for salt master container
+    mkdir -p /tmp/salt/master-pki
+    # Set persistent storage for salt minion certificate authority container
+    mkdir -p /tmp/salt/minion-ca-pki && touch /tmp/salt/minion-ca-id
+
     systemctl start {docker,kubelet}.service  || abort "could not start service"
     systemctl enable {docker,kubelet}.service || abort "could not enable service"
 

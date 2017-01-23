@@ -166,6 +166,7 @@ else
   curr_dir
 end
 $vars["work_dir"] = nil
+$vars["tf_dir"]   = curr_dir
 
 vars_cmdline   = []
 vars_filenames = []

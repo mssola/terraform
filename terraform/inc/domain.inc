@@ -106,12 +106,12 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% if enabled? "is_dashboard" %>
 
         provisioner "file" {
-            source      = "provision/dashboard/provision-dashboard.sh"
+            source      = "<%= tf_dir %>/provision/dashboard/provision-dashboard.sh"
             destination = "/tmp/provision-dashboard.sh"
         }
 
         provisioner "file" {
-            source      = "provision/dashboard/salt"
+            source      = "<%= tf_dir %>/provision/dashboard/salt"
             destination = "/tmp"
         }
 
@@ -132,7 +132,7 @@ resource "<%= domain_type %>" "<%= name %>" {
         }
 
         provisioner "file" {
-            source      = "provision/dashboard/manifests/"
+            source      = "<%= tf_dir %>/provision/dashboard/manifests/"
             destination = "/etc/kubernetes/manifests"
         }
 
@@ -155,17 +155,17 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% else %>
 
         provisioner "file" {
-            source      = "provision/minion/provision-salt-minion.sh"
+            source      = "<%= tf_dir %>/provision/minion/provision-salt-minion.sh"
             destination = "/tmp/provision-salt-minion.sh"
         }
 
         provisioner "file" {
-            source      = "provision/minion/salt"
+            source      = "<%= tf_dir %>/provision/minion/salt"
             destination = "/tmp"
         }
 
         provisioner "file" {
-            source      = "provision/minion/salt/all-grains/<%= hostname %>"
+            source      = "<%= tf_dir %>/provision/minion/salt/all-grains/<%= hostname %>"
             destination = "/tmp/salt/grains"
         }
 

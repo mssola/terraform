@@ -4,6 +4,7 @@ log()   { echo ">>> $1" ; }
 warn()  { log "WARNING: $1" ; }
 abort() { log "FATAL: $1" ; exit 1 ; }
 
+SKIP_ROLE_ASSIGNMENTS=
 TMP_SALT_ROOT=/tmp/salt
 
 # global args for running zypper
@@ -20,6 +21,10 @@ while [ $# -gt 0 ] ; do
       ;;
     --tmp-salt-root)
       TMP_SALT_ROOT=$2
+      shift
+      ;;
+    --skip-role-assignments)
+      SKIP_ROLE_ASSIGNMENTS=1
       shift
       ;;
     *)
@@ -50,7 +55,7 @@ fi
 log "Copying the Salt config"
 mkdir -p /etc/salt/minion.d
 cp -v $TMP_SALT_ROOT/config/minion.d/*  /etc/salt/minion.d
-cp -v $TMP_SALT_ROOT/grains             /etc/salt/
+[-z $SKIP_ROLE_ASSIGNMENTS ] || cp -v $TMP_SALT_ROOT/grains /etc/salt/
 
 log "Enabling & starting the Salt minion"
 systemctl enable salt-minion

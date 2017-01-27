@@ -164,14 +164,17 @@ resource "<%= domain_type %>" "<%= name %>" {
             destination = "/tmp"
         }
 
-        provisioner "file" {
-            source      = "<%= tf_dir %>/provision/minion/salt/all-grains/<%= hostname %>"
-            destination = "/tmp/salt/grains"
-        }
+        <% if !enabled? "skip_role_assignments" %>
+            provisioner "file" {
+                source      = "<%= tf_dir %>/provision/minion/salt/all-grains/<%= hostname %>"
+                destination = "/tmp/salt/grains"
+            }
+        <% end %>
 
         provisioner "remote-exec" {
             inline = [
-                <% prov_args  = "--salt-master #{salt_master}" %>
+                <% prov_args  = "--salt-master #{salt_master} " %>
+                <% prov_args += "--skip-role-assignments " if enabled? "skip_role_assignments" %>
                 "bash /tmp/provision-salt-minion.sh <%= prov_args %>",
             ]
         }

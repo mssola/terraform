@@ -82,10 +82,10 @@ where the salt-master is running, so those minions will be able to report back t
 salt-master instance.
 
 #### SLE
-`SALT_MASTER_HOST=192.168.X.Y SKIP_DASHBOARD=true MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+`SALT_MASTER_HOST=192.168.X.Y SKIP_DASHBOARD=1 MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 #### openSUSE
-`SALT_MASTER_HOST=192.168.X.Y SKIP_DASHBOARD=true FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+`SALT_MASTER_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ## Libvirt setup
 

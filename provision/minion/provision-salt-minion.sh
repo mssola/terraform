@@ -55,7 +55,7 @@ fi
 log "Copying the Salt config"
 mkdir -p /etc/salt/minion.d
 cp -v $TMP_SALT_ROOT/config/minion.d/*  /etc/salt/minion.d
-[-z $SKIP_ROLE_ASSIGNMENTS ] || cp -v $TMP_SALT_ROOT/grains /etc/salt/
+[ -z $SKIP_ROLE_ASSIGNMENTS ] || cp -v $TMP_SALT_ROOT/grains /etc/salt/
 
 log "Enabling & starting the Salt minion"
 systemctl enable salt-minion

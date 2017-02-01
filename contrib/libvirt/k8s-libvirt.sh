@@ -15,16 +15,14 @@ MASTER_MEMORY=${MASTER_MEMORY:-2048}
 MINIONS_SIZE=${MINIONS_SIZE:-2}
 MINION_MEMORY=${MINION_MEMORY:-2048}
 FLAVOUR=${FLAVOUR:-"sles"}
-SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-}
+SALT_MASTER_HOST=${SALT_MASTER_HOST:-}
+SKIP_DASHBOARD=${SKIP_DASHBOARD:-"false"}
+SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
+
+[ $SKIP_DASHBOARD != "false" ] && SKIP_DASHBOARD="true"
+[ $SKIP_ORCHESTRATION != "false" ] && SKIP_ORCHESTRATION="true"
 
 SSH_DEFAULT_ARGS="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
-
-# Always set SKIP_ORCHESTRATION to true if provided
-if [ -z $SKIP_ORCHESTRATION ]; then
-    SKIP_ORCHESTRATION="false"
-else
-    SKIP_ORCHESTRATION="true"
-fi
 
 # If the project is like "k8s-terraform-stable", then the prefix is `stable`.
 # Otherwise, we stick to the current username.
@@ -78,11 +76,13 @@ fi
     -F libvirt-obs.profile \
     -V salt_dir="$SALT_PATH" \
     -V cluster_prefix=$prefix \
+    -V skip_dashboard=$SKIP_DASHBOARD \
     -V dashboard_memory=$DASHBOARD_MEMORY \
     -V master_memory=$MASTER_MEMORY \
     -V kube_minions_size=$MINIONS_SIZE \
     -V minion_memory=$MINION_MEMORY \
     -V volume_source="$IMAGE_PATH" \
+    -V salt_master_host=$SALT_MASTER_HOST \
     -V skip_role_assignments=$SKIP_ORCHESTRATION \
     $1
 

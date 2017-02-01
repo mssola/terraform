@@ -20,7 +20,11 @@
     <% elsif provider == "libvirt" %>
 
         output "ip_<%= name %>" {
-            value = "${libvirt_domain.<%= name %>.network_interface.0.addresses.0}"
+            <% if exists? "count" %>
+                value = "${join(",", libvirt_domain.<%= name %>.*.network_interface.0.addresses.0)}"
+            <% else %>
+                value = "${libvirt_domain.<%= name %>.network_interface.0.addresses.0}"
+            <% end %>
         }
 
     <% end %>
@@ -164,7 +168,7 @@ resource "<%= domain_type %>" "<%= name %>" {
             destination = "/tmp"
         }
 
-        <% if !enabled? "skip_role_assignments" %>
+        <% if !enabled?("skip_role_assignments") && !enabled?("skip_dashboard") %>
             provisioner "file" {
                 source      = "<%= tf_dir %>/provision/minion/salt/all-grains/<%= hostname %>"
                 destination = "/tmp/salt/grains"
@@ -174,7 +178,7 @@ resource "<%= domain_type %>" "<%= name %>" {
         provisioner "remote-exec" {
             inline = [
                 <% prov_args  = "--salt-master #{salt_master} " %>
-                <% prov_args += "--skip-role-assignments " if enabled? "skip_role_assignments" %>
+                <% prov_args += "--skip-role-assignments " if enabled?("skip_role_assignments") || enabled?("skip_dashboard") %>
                 "bash /tmp/provision-salt-minion.sh <%= prov_args %>",
             ]
         }

@@ -31,45 +31,52 @@
 <%= render "inc/network.inc", name: "base" %>
 <%= render "inc/volume.inc", name: "base" %>
 
-#####################
-# dashboard
-#####################
+<% unless enabled? "skip_dashboard" %>
+    #####################
+    # dashboard
+    #####################
 
-<%= render "inc/volume.inc", name: "dashboard", base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "dashboard" %>
-<%= render "inc/domain.inc",
-    name: "dashboard",
-    floating_ip: "dashboard",
-    hostname: "dashboard",
-    is_dashboard: true,
-    memory: "1024" %>
+    <%= render "inc/volume.inc", name: "dashboard", base_id: "base" %>
+    <%= render "inc/cloudinit_def.inc", name: "dashboard" %>
+    <%= render "inc/domain.inc",
+        name: "dashboard",
+        floating_ip: "dashboard",
+        hostname: "dashboard",
+        is_dashboard: true,
+        memory: "1024" %>
+<% end %>
 
-<%# we will need to reference this dashboard later on, but sometimes %>
-<%# with the IP address (openstack) and sometimes with the name (libvirt) %>
-<% if provider == "openstack" %>
-    <% dashboard_ref = "${openstack_compute_instance_v2.dashboard.access_ip_v4}" %>
-<% elsif provider == "libvirt" %>
-    <% if exists?("bridge") %>
-        <%# we do not have DNS on bridge mode, so we use a hardcoded IP %>
-        <% dashboard_ref = "${libvirt_domain.dashboard.network_interface.0.addresses.0}" %>
-    <% else %>
-        <% dashboard_ref = fqdn("dashboard") %>
+<% if exists? "salt_master_host" %>
+    <% dashboard_ref = "#{salt_master_host}" %>
+<% else %>
+    <%# we will need to reference this dashboard later on, but sometimes %>
+    <%# with the IP address (openstack) and sometimes with the name (libvirt) %>
+    <% if provider == "openstack" %>
+        <% dashboard_ref = "${openstack_compute_instance_v2.dashboard.access_ip_v4}" %>
+    <% elsif provider == "libvirt" %>
+        <% if exists?("bridge") %>
+            <%# we do not have DNS on bridge mode, so we use a hardcoded IP %>
+            <% dashboard_ref = "${libvirt_domain.dashboard.network_interface.0.addresses.0}" %>
+        <% else %>
+            <% dashboard_ref = fqdn("dashboard") %>
+        <% end %>
     <% end %>
 <% end %>
 
-#####################
-# kube-master
-#####################
-
-<%= render "inc/volume.inc", name: "master", base_id: "base" %>
-<%= render "inc/cloudinit_def.inc", name: "master" %>
-<%= render "inc/domain.inc",
-    name: "master",
-    hostname: "master",
-    flavor_name: "m1.medium",
-    floating_ip: "master",
-    depends_on: ["#{domain_type}.dashboard"],
-    salt_master: dashboard_ref %>
+<% unless enabled? "skip_dashboard" %>
+    #####################
+    # kube-master
+    #####################
+    <%= render "inc/volume.inc", name: "master", base_id: "base" %>
+    <%= render "inc/cloudinit_def.inc", name: "master" %>
+    <%= render "inc/domain.inc",
+        name: "master",
+        hostname: "master",
+        flavor_name: "m1.medium",
+        floating_ip: "master",
+        depends_on: ["#{domain_type}.dashboard"],
+        salt_master: dashboard_ref %>
+<% end %>
 
 #####################
 # kube-minion
@@ -78,11 +85,11 @@
 <%= render "inc/volume.inc", name: "minion", count: kube_minions_size, base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "minion", count: kube_minions_size %>
 
-<% if enabled? "floating_minions" %>
+<% if enabled?("floating_minions") || enabled?("skip_dashboard") %>
     <%= render "inc/domain.inc",
         name: "minion",
         hostname: "minion",
-        depends_on: ["#{domain_type}.dashboard", "#{domain_type}.master"],
+        depends_on: enabled?("skip_dashboard") ? [] : ["#{domain_type}.dashboard", "#{domain_type}.master"],
         floating_ip: "minion",
         count: kube_minions_size,
         salt_master: dashboard_ref %>
@@ -90,7 +97,7 @@
     <%= render "inc/domain.inc",
         name: "minion",
         hostname: "minion",
-        depends_on: ["#{domain_type}.dashboard", "#{domain_type}.master"],
+        depends_on: enabled?("skip_dashboard") ? [] : ["#{domain_type}.dashboard", "#{domain_type}.master"],
         bastion: "dashboard",
         count: kube_minions_size,
         salt_master: dashboard_ref %>

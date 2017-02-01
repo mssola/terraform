@@ -40,6 +40,52 @@ Some weird things:
   environment variable.
 - If you want to run the terraform provisioning in debug mode, you can export
   the `TF_DEBUG` environment variable set to any value.
+- By default all images used are SUSE Linux Enterprise (SLE), but you can use
+  `FLAVOUR` environment variable set to `opensuse` if you prefer to use
+  opensuse as the base image for all virtual machines.
+- You can also set `SKIP_ORCHESTRATION` to avoid setting roles to machines and
+  to avoid running a orchestration automatically.
+- If you want to completely skip the creation of a dashboard machine you can
+  set `SKIP_DASHBOARD`, so only minion machines will be created. In this case you
+  can also set `SALT_MASTER_HOST` to make this minion machines point to the host
+  that you want. This can effectively reduce the creation time of the cluster,
+  making it straightforward to develop along with [the pharos dashboard](https://github.com/suse/pharos).
+
+## Examples
+
+### Run a whole cluster running orchestration automatically
+
+This creates a dashboard, a kubernetes-master and 2 minions. It will run the
+orchestration in the dashboard machine, inside the salt-master container.
+
+#### SLE
+`MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+
+#### openSUSE
+`FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+
+### Run a whole cluster skipping orchestration
+
+This creates a dashboard, a kubernetes-master and 2 minions. This will skip the
+role assigning of machines and the orchestration run.
+
+#### SLE
+`SKIP_ORCHESTRATION=1 MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+
+#### openSUSE
+`SKIP_ORCHESTRATION=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+
+### Run a tiny cluster
+
+This creates 2 minions. No dashboard machine will be created, so you will need to specify
+where the salt-master is running, so those minions will be able to report back to that
+salt-master instance.
+
+#### SLE
+`SALT_MASTER_HOST=192.168.X.Y SKIP_DASHBOARD=true MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+
+#### openSUSE
+`SALT_MASTER_HOST=192.168.X.Y SKIP_DASHBOARD=true FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ## Libvirt setup
 

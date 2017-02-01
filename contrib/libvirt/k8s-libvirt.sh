@@ -92,7 +92,7 @@ fi
 
 notify-send "The infrastructure is up, running Salt!"
 
-if [ $SKIP_ORCHESTRATION == "false" ]; then
+if [ $SKIP_ORCHESTRATION == "false" ] && [ $SKIP_DASHBOARD == "false" ]; then
     ssh -i ssh/id_docker \
         $SSH_DEFAULT_ARGS \
         root@`terraform output ip_dashboard` \

@@ -69,7 +69,7 @@ spec:
         path: /tmp/salt/minion-ca-pki
     - name: salt-minion-ca-config
       hostPath:
-        path: /tmp/salt/config/minion.d
+        path: /tmp/salt/config/minion.d-ca
     - name: salt-minion-ca-signing-policies
       hostPath:
         path: /srv/salt/ca/signing_policies.conf

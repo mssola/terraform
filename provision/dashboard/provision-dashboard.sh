@@ -27,6 +27,10 @@ PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
 # kubernetes manifests location for the kubelet
 K8S_MANIFESTS=/etc/kubernetes/manifests
 
+# rpms and services neccessary in the dashboard
+DASHBOARD_RPMS="kubernetes-node bind-utils etcd"
+DASHBOARD_SERVICES="docker kubelet etcd"
+
 # global args for running zypper
 ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
 
@@ -126,9 +130,6 @@ if [ -z "$FINISH" ] ; then
     chmod 600 /root/.ssh/*
     cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 
-    # TODO: these lines should go in the etcd discovery rpm
-    mkdir -p /var/run/etcd
-
     log "Setting some Pillars..."
     [ -n "$INFRA"             ] && add_pillar infrastructure "$INFRA"
     [ -n "$DASHBOARD_REF"     ] && add_pillar dashboard "$DASHBOARD_REF"
@@ -139,9 +140,10 @@ if [ -z "$FINISH" ] ; then
     zypper $ZYPPER_GLOBAL_ARGS ar -Gf "$CONTAINERS_REPO" containers || abort "could not enable containers repo"
 
     log "Installing kubernetes-node"
-    zypper $ZYPPER_GLOBAL_ARGS in -y kubernetes-node bind-utils || abort "could not install packages"
+    zypper $ZYPPER_GLOBAL_ARGS in -y $DASHBOARD_RPMS || abort "could not install packages"
 
     # TODO: this would have to be removed...
+    mkdir -p "$K8S_MANIFESTS"
     echo "KUBELET_ARGS=\"--v=2 --config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
 
     # Set persistent storage for salt master container
@@ -149,11 +151,12 @@ if [ -z "$FINISH" ] ; then
     # Set persistent storage for salt minion certificate authority container
     mkdir -p /tmp/salt/minion-ca-pki && touch /tmp/salt/minion-ca-id
 
-    systemctl start {docker,kubelet}.service  || abort "could not start service"
-    systemctl enable {docker,kubelet}.service || abort "could not enable service"
+    for srv in $DASHBOARD_SERVICES ; do
+      systemctl start "$srv.service"  || abort "could not start service $srv"
+      systemctl enable "$srv.service" || abort "could not enable service $srv"
+    done
 
     # Wait for containers to be ready
-    wait_for_container "etcd-discovery" "etcd (discovery)"
     wait_for_container "salt-master"    "salt master"
     wait_for_container "salt-minion-ca" "certificate authority"
 else

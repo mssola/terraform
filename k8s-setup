@@ -5,6 +5,7 @@
 require "erb"
 require "fileutils"
 require "logger"
+require "ipaddr"
 require "optparse"
 require "ostruct"
 require 'pathname'
@@ -140,6 +141,12 @@ class String
       return false  if self == false  || empty? || self =~ /^(false|f|no|n|0)$/i
     end
     raise ArgumentError, "invalid value for Boolean: \"#{self}\""
+  end
+  def is_ip?
+    IPAddr.new self
+    true
+  rescue IPAddr::InvalidAddressError
+    false
   end
 end
 

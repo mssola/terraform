@@ -46,8 +46,8 @@
         memory: "1024" %>
 <% end %>
 
-<% if exists? "salt_master_host" %>
-    <% dashboard_ref = "#{salt_master_host}" %>
+<% if exists? "dashboard_host" %>
+    <% dashboard_ref = "#{dashboard_host}" %>
 <% else %>
     <%# we will need to reference this dashboard later on, but sometimes %>
     <%# with the IP address (openstack) and sometimes with the name (libvirt) %>
@@ -75,7 +75,7 @@
         flavor_name: "m1.medium",
         floating_ip: "master",
         depends_on: ["#{domain_type}.dashboard"],
-        salt_master: dashboard_ref %>
+        dashboard: dashboard_ref %>
 <% end %>
 
 #####################
@@ -92,7 +92,7 @@
         depends_on: enabled?("skip_dashboard") ? [] : ["#{domain_type}.dashboard", "#{domain_type}.master"],
         floating_ip: "minion",
         count: kube_minions_size,
-        salt_master: dashboard_ref %>
+        dashboard: dashboard_ref %>
 <% else %>
     <%= render "inc/domain.inc",
         name: "minion",
@@ -100,5 +100,5 @@
         depends_on: enabled?("skip_dashboard") ? [] : ["#{domain_type}.dashboard", "#{domain_type}.master"],
         bastion: "dashboard",
         count: kube_minions_size,
-        salt_master: dashboard_ref %>
+        dashboard: dashboard_ref %>
 <% end %>

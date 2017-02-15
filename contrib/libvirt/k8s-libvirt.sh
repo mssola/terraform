@@ -15,7 +15,7 @@ MASTER_MEMORY=${MASTER_MEMORY:-2048}
 MINIONS_SIZE=${MINIONS_SIZE:-2}
 MINION_MEMORY=${MINION_MEMORY:-2048}
 FLAVOUR=${FLAVOUR:-"sles"}
-SALT_MASTER_HOST=${SALT_MASTER_HOST:-}
+DASHBOARD_HOST=${DASHBOARD_HOST:-}
 SKIP_DASHBOARD=${SKIP_DASHBOARD:-"false"}
 SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
 
@@ -82,7 +82,7 @@ fi
     -V kube_minions_size=$MINIONS_SIZE \
     -V minion_memory=$MINION_MEMORY \
     -V volume_source="$IMAGE_PATH" \
-    -V salt_master_host=$SALT_MASTER_HOST \
+    -V dashboard_host=$DASHBOARD_HOST \
     -V skip_role_assignments=$SKIP_ORCHESTRATION \
     $1
 

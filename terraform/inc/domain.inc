@@ -180,7 +180,8 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                <% prov_args  = "--salt-master #{salt_master} " %>
+                <% prov_args  = "--dashboard-host #{dashboard} " %>
+                <% prov_args += "--dashboard-ip #{dashboard} " if dashboard.is_ip? %>
                 <% prov_args += "--skip-role-assignments " if enabled?("skip_role_assignments") || enabled?("skip_dashboard") %>
                 "bash /tmp/provision-salt-minion.sh <%= prov_args %>",
             ]

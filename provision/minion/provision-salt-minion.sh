@@ -15,8 +15,12 @@ while [ $# -gt 0 ] ; do
     --debug)
       set -x
       ;;
-    -m|--salt-master)
-      SALT_MASTER=$2
+    --dashboard-ip)
+      DASHBOARD_IP=$2
+      shift
+      ;;
+    -d|--dashboard-host)
+      DASHBOARD_HOST=$2
       shift
       ;;
     --tmp-salt-root)
@@ -36,6 +40,8 @@ done
 
 ###################################################################
 
+[ -n "$DASHBOARD_IP" ] && echo "$DASHBOARD_IP dashboard" >> /etc/hosts
+
 log "Fixing the ssh keys permissions and setting the authorized keys"
 chmod 600 /root/.ssh/*
 cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
@@ -44,9 +50,9 @@ log "Installing the Salt minion"
 zypper $ZYPPER_GLOBAL_ARGS in --force-resolution --no-recommends salt-minion
 [ $? -eq 0 ] || abort "could not install Salt minion"
 
-if [ -n "$SALT_MASTER" ] ; then
-    log "Setting salt master: $SALT_MASTER"
-    echo "master: $SALT_MASTER" > "$TMP_SALT_ROOT/config/minion.d/minion.conf"
+if [ -n "$DASHBOARD_HOST" ] ; then
+    log "Setting salt master: $DASHBOARD_HOST"
+    echo "master: $DASHBOARD_HOST" > "$TMP_SALT_ROOT/config/minion.d/minion.conf"
 else
     warn "no salt master set!"
 fi

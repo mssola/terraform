@@ -47,7 +47,7 @@ Some weird things:
   to avoid running a orchestration automatically.
 - If you want to completely skip the creation of a dashboard machine you can
   set `SKIP_DASHBOARD`, so only minion machines will be created. In this case you
-  can also set `SALT_MASTER_HOST` to make this minion machines point to the host
+  can also set `DASHBOARD_HOST` to make this minion machines point to the host
   that you want. This can effectively reduce the creation time of the cluster,
   making it straightforward to develop along with [the pharos dashboard](https://github.com/suse/pharos).
 
@@ -82,10 +82,10 @@ where the salt-master is running, so those minions will be able to report back t
 salt-master instance.
 
 #### SLE
-`SALT_MASTER_HOST=192.168.X.Y SKIP_DASHBOARD=1 MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+`DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 #### openSUSE
-`SALT_MASTER_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+`DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ## Libvirt setup
 

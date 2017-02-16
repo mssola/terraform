@@ -146,6 +146,12 @@ if [ -z "$FINISH" ] ; then
     mkdir -p "$K8S_MANIFESTS"
     echo "KUBELET_ARGS=\"--v=2 --config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
 
+    sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@' /etc/sysconfig/etcd
+    sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379@' /etc/sysconfig/etcd
+    sed -i 's@#\?ETCD_ADVERTISE_CLIENT_URLS.*@ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379@' /etc/sysconfig/etcd
+
+    systemctl restart etcd
+
     # Set persistent storage for salt master container
     mkdir -p /tmp/salt/master-pki
     # Set persistent storage for salt minion certificate authority container

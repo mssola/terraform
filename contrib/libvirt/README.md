@@ -49,7 +49,7 @@ Some weird things:
   set `SKIP_DASHBOARD`, so only minion machines will be created. In this case you
   can also set `DASHBOARD_HOST` to make this minion machines point to the host
   that you want. This can effectively reduce the creation time of the cluster,
-  making it straightforward to develop along with [the pharos dashboard](https://github.com/suse/pharos).
+  making it straightforward to develop along with [the velum dashboard](https://github.com/kubic-project/velum).
 
 ## Examples
 

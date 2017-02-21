@@ -10,7 +10,7 @@ E2E=
 INFRA="cloud"
 DOCKER_REG_MIRROR=
 CONTAINER_START_TIMEOUT=300
-SALT_ROOT=/srv
+SALT_ROOT=/tmp
 SALT_ORCH_FLAGS=
 CONFIG_OUT_DIR=/root
 
@@ -21,14 +21,11 @@ API_SERVER_PORT=6443
 # an (optional) extra IP for the API server (usually a floating IP)
 API_SERVER_IP=
 
-# we will add some pillars in the master...
-PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
-
 # kubernetes manifests location for the kubelet
 K8S_MANIFESTS=/etc/kubernetes/manifests
 
 # rpms and services neccessary in the dashboard
-DASHBOARD_RPMS="kubernetes-node bind-utils etcd"
+DASHBOARD_RPMS="kubernetes-node etcd"
 DASHBOARD_SERVICES="docker kubelet etcd"
 
 # global args for running zypper and ssh/scp
@@ -40,10 +37,14 @@ SSH_GLOBAL_ARGS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 # repository information
 source /etc/os-release
 case $NAME in
+  "CAASP")
+    CONTAINERS_REPO="http://download.opensuse.org/repositories/Virtualization:/containers/SLE_12_SP1/"
+    ;;
   *)
     CONTAINERS_REPO="http://download.opensuse.org/repositories/Virtualization:/containers/$(echo -n $PRETTY_NAME | tr " " "_")"
     ;;
 esac
+
 
 while [ $# -gt 0 ] ; do
   case $1 in
@@ -154,7 +155,7 @@ if [ -z "$FINISH" ] ; then
 
     # TODO: this would have to be removed...
     mkdir -p "$K8S_MANIFESTS"
-    echo "KUBELET_ARGS=\"--v=2 --config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
+    echo "KUBELET_ARGS=\"--config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
 
     log "Fixing etcd config and restarting it"
     sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@' /etc/sysconfig/etcd
@@ -220,7 +221,7 @@ users:
 EOF
 
     log "Creating admin.tar with config files and certificates"
-    scp $SSH_GLOBAL_ARGS master:/etc/pki/minion.{crt,key} "$CONFIG_OUT_DIR" || abort "could not copy file from master"
+    scp $SSH_GLOBAL_ARGS $API_SERVER_IP:/etc/pki/minion.{crt,key} "$CONFIG_OUT_DIR" || abort "could not copy file from master"
 
     mv -f "$CONFIG_OUT_DIR/minion.crt" "$CONFIG_OUT_DIR/admin.crt"
     mv -f "$CONFIG_OUT_DIR/minion.key" "$CONFIG_OUT_DIR/admin.key"

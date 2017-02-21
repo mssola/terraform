@@ -121,18 +121,18 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                "mkdir -p <%= salt_root %>",
+                "mkdir -p <%= salt_root %>/salt",
             ]
         }
 
         provisioner "file" {
             source      = "<%= salt_dir %>/salt"
-            destination = "<%= salt_root %>"
+            destination = "<%= salt_root %>/salt/sls"
         }
 
         provisioner "file" {
             source      = "<%= salt_dir %>/pillar"
-            destination = "<%= salt_root %>"
+            destination = "<%= salt_root %>/salt/pillar"
         }
 
         provisioner "remote-exec" {

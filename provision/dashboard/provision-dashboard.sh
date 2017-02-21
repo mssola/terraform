@@ -21,9 +21,6 @@ API_SERVER_PORT=6443
 # an (optional) extra IP for the API server (usually a floating IP)
 API_SERVER_IP=
 
-# we will add some pillars in the master...
-PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
-
 # kubernetes manifests location for the kubelet
 K8S_MANIFESTS=/etc/kubernetes/manifests
 
@@ -61,7 +58,6 @@ while [ $# -gt 0 ] ; do
       ;;
     -r|--root)
       SALT_ROOT=$2
-      PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
       shift
       ;;
     -F|--finish)
@@ -102,6 +98,8 @@ while [ $# -gt 0 ] ; do
 done
 
 ###################################################################
+
+PILLAR_PARAMS_FILE=$SALT_ROOT/salt/pillar/params.sls
 
 add_pillar() {
     log "Pillar: setting $1=\"$2\""

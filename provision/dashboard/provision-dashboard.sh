@@ -10,7 +10,7 @@ E2E=
 INFRA="cloud"
 DOCKER_REG_MIRROR=
 CONTAINER_START_TIMEOUT=300
-SALT_ROOT=/tmp/deploy
+SALT_ROOT=/tmp
 SALT_ORCH_FLAGS=
 CONFIG_OUT_DIR=/root
 
@@ -28,7 +28,7 @@ PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
 K8S_MANIFESTS=/etc/kubernetes/manifests
 
 # rpms and services neccessary in the dashboard
-DASHBOARD_RPMS="kubernetes-node bind-utils etcd"
+DASHBOARD_RPMS="kubernetes-node etcd"
 DASHBOARD_SERVICES="docker kubelet etcd"
 
 # global args for running zypper and ssh/scp
@@ -40,13 +40,14 @@ SSH_GLOBAL_ARGS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 # repository information
 source /etc/os-release
 case $NAME in
+  "CAASP")
+    CONTAINERS_REPO="http://download.opensuse.org/repositories/Virtualization:/containers/SLE_12_SP1/"
+    ;;
   *)
     CONTAINERS_REPO="http://download.opensuse.org/repositories/Virtualization:/containers/$(echo -n $PRETTY_NAME | tr " " "_")"
     ;;
 esac
 
-# TODO: maybe we need this repo:
-# CONTAINERS_REPO="http://download.opensuse.org/repositories/Virtualization:/containers/SLE_12_SP1/"
 
 while [ $# -gt 0 ] ; do
   case $1 in
@@ -60,6 +61,7 @@ while [ $# -gt 0 ] ; do
       ;;
     -r|--root)
       SALT_ROOT=$2
+      PILLAR_PARAMS_FILE=$SALT_ROOT/pillar/params.sls
       shift
       ;;
     -F|--finish)
@@ -152,6 +154,7 @@ if [ -z "$FINISH" ] ; then
     sed -i 's@#\?ETCD_ADVERTISE_CLIENT_URLS.*@ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379@' /etc/sysconfig/etcd
 
     systemctl restart etcd
+    [ $? -eq 0 ] || abort "could not restart etcd"
 
     # Set persistent storage for salt master container
     mkdir -p /tmp/salt/master-pki

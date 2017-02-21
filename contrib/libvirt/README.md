@@ -50,6 +50,10 @@ Some weird things:
   can also set `DASHBOARD_HOST` to make this minion machines point to the host
   that you want. This can effectively reduce the creation time of the cluster,
   making it straightforward to develop along with [the velum dashboard](https://github.com/kubic-project/velum).
+- To cleanup you can run `contrib/libvirt/k8s-libvirt.sh destroy`. This will
+  bring up a dialog that will ask for confimation. If you want to destroy without
+  dialogs (as you would from some other script), you can set the FORCE environment
+  variable: `FORCE=true contrib/libvirt/k8s-libvirt.sh destroy`
 
 ## Examples
 

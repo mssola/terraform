@@ -69,10 +69,12 @@ if [ "$1" == "apply" ]; then
 fi
 
 [ -n "$TF_DEBUG" ] && export TF_LOG=debug
+[ -n "$FORCE" ] && force="--force"
 
 # Go kubes go!
 ./k8s-setup \
     --verbose \
+    $force \
     -F libvirt-obs.profile \
     -V salt_dir="$SALT_PATH" \
     -V cluster_prefix=$prefix \

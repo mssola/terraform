@@ -24,6 +24,11 @@ SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
 
 SSH_DEFAULT_ARGS="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 
+# Fix ssh directory/keys permissions (git ignores some permission changes)
+chmod 700 ssh
+chmod 644 ssh/id_docker.pub
+chmod 600 ssh/id_docker
+
 # If the project is like "k8s-terraform-stable", then the prefix is `stable`.
 # Otherwise, we stick to the current username.
 prefix="$(echo "${PWD##*/}" | awk -F- '{ print $3; }')"

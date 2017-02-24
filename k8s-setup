@@ -142,12 +142,6 @@ class String
     end
     raise ArgumentError, "invalid value for Boolean: \"#{self}\""
   end
-  def is_ip?
-    IPAddr.new self
-    true
-  rescue IPAddr::InvalidAddressError
-    false
-  end
 end
 
 # find an executable in the PATH

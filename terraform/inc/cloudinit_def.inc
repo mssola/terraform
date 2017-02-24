@@ -12,6 +12,12 @@
 
         ssh_authorized_key = "${file("<%= ssh_key %>.pub")}"
         pool               = "<%= volume_pool %>"
+
+        <% if enabled? "is_dashboard" %>
+            user_data  = "${data.template_file.dashboard.rendered}"
+        <% else %>
+            user_data  = "${data.template_file.minion.rendered}"
+        <% end %>
     }
 
 <% end %>

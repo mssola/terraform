@@ -15,10 +15,6 @@ while [ $# -gt 0 ] ; do
     --debug)
       set -x
       ;;
-    --dashboard-ip)
-      DASHBOARD_IP=$2
-      shift
-      ;;
     -d|--dashboard-host)
       DASHBOARD_HOST=$2
       shift
@@ -39,8 +35,6 @@ while [ $# -gt 0 ] ; do
 done
 
 ###################################################################
-
-[ -n "$DASHBOARD_IP" ] && echo "$DASHBOARD_IP dashboard" >> /etc/hosts
 
 log "Fixing the ssh keys permissions and setting the authorized keys"
 chmod 600 /root/.ssh/*

@@ -59,26 +59,23 @@ Some weird things:
 ### Run a whole cluster running orchestration automatically
 
 This creates a dashboard, a kubernetes-master and 2 minions. It will run the
-orchestration in the dashboard machine, inside the salt-master container.
+orchestration in the dashboard machine, inside the salt-master container. Example:
 
-#### openSUSE
 `FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ### Run a whole cluster skipping orchestration
 
 This creates a dashboard, a kubernetes-master and 2 minions. This will skip the
-role assigning of machines and the orchestration run.
+role assigning of machines and the orchestration run. Example:
 
-#### openSUSE
 `SKIP_ORCHESTRATION=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ### Run a tiny cluster
 
 This creates 2 minions. No dashboard machine will be created, so you will need to specify
 where the salt-master is running, so those minions will be able to report back to that
-salt-master instance.
+salt-master instance. Example:
 
-#### openSUSE
 `DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ## Libvirt setup

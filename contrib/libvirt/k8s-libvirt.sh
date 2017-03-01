@@ -29,11 +29,14 @@ chmod 700 ssh
 chmod 644 ssh/id_docker.pub
 chmod 600 ssh/id_docker
 
-# If the project is like "k8s-terraform-stable", then the prefix is `stable`.
+# If PREFIX is set we use that as a prefix else if the project is like
+# "k8s-terraform-stable", then the prefix is `stable`.
 # Otherwise, we stick to the current username.
 prefix="$(echo "${PWD##*/}" | awk -F- '{ print $3; }')"
-if [ "$prefix" = "" ]; then
-    prefix="$USER"
+if [ ! -z ${PREFIX+x} ]; then
+  prefix="$PREFIX"
+elif [ "$prefix" = "" ]; then
+  prefix="$USER"
 fi
 
 if [ "$1" == "apply" ]; then

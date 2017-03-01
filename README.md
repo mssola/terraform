@@ -211,3 +211,9 @@ $ scp -i ssh/id_docker root@`terraform output ip_dashboard`:admin.tar .
 $ tar xvpf admin.tar
 $ KUBECONFIG=kubeconfig kubectl get nodes
 ```
+
+## License
+
+This project is licensed under the Apache License, Version 2.0. See
+[LICENSE](https://github.com/kubic-project/salt/blob/master/LICENSE) for the full
+license text.

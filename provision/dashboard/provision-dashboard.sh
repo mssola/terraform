@@ -160,17 +160,25 @@ if [ -z "$FINISH" ] ; then
     done
 
     # Wait for containers to be ready
-    wait_for_container "salt-master"    "salt master"
-    wait_for_container "salt-minion-ca" "certificate authority"
+    wait_for_container "k8s_salt-master"     "salt master"
+    wait_for_container "k8s_salt-minion-ca"  "certificate authority"
+    wait_for_container "k8s_velum-mariadb"   "mariadb database"
+    wait_for_container "k8s_velum-dashboard" "velum dashboard"
 else
-    SALT_MASTER=`docker ps | grep -v pause | grep salt-master | awk '{print $1}'`
-    CA_CONTAINER=`docker ps | grep -v pause | grep salt-minion-ca | awk '{print $1}'`
+    VELUM_CONTAINER=`docker ps | grep k8s_velum-dashboard | awk '{print $1}'`
+    SALT_MASTER_CONTAINER=`docker ps | grep k8s_salt-master | awk '{print $1}'`
+    CA_CONTAINER=`docker ps | grep k8s_salt-minion-ca | awk '{print $1}'`
 
-    [ -n "$SALT_MASTER"  ] || abort "could not get salt master container"
-    [ -n "$CA_CONTAINER" ] || abort "could not get certificate authority container"
+    [ -n "$VELUM_CONTAINER" ]       || abort "could not get velum container"
+    [ -n "$SALT_MASTER_CONTAINER" ] || abort "could not get salt master container"
+    [ -n "$CA_CONTAINER" ]          || abort "could not get certificate authority container"
 
-    log "Running orchestration on salt master container ($SALT_MASTER)"
-    docker exec "$SALT_MASTER" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes
+    log "Setting up the database on velum container ($VELUM_CONTAINER)"
+    docker exec "$VELUM_CONTAINER" rake db:setup
+    [ $? -eq 0 ] || abort "database could not be setup"
+
+    log "Running orchestration on salt master container ($SALT_MASTER_CONTAINER)"
+    docker exec "$SALT_MASTER_CONTAINER" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes
     [ $? -eq 0 ] || abort "salt-run did not succeed"
 
     if [ -z "$API_SERVER_IP" ] ; then

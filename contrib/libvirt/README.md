@@ -27,12 +27,12 @@ Some weird things:
 `k8s-setup` is called with the following flags:
 
 - The `salt_dir` points to a local copy of
-  [k8s-salt](https://gitlab.suse.de/docker/k8s-salt). This is helpful if you are
-  also messing with the `k8s-salt` repository. The local copy of `k8s-salt` is
+  [kubic-project/salt](https://github.com/kubic-project/salt). This is helpful if you are
+  also messing with the `kubic-project/salt` repository. The local copy of `kubic-project/salt` is
   supposed to be on the same directory as your local `k8s-terraform` copy. If
   that's not the case, you can provide the `SALT_PATH` environment variable.
 - The path to the image to be used is taken from the `IMAGE_PATH` environment
-  variable. If this is not defined, a SLE12 image will be downloaded and used.
+  variable. If this is not defined, an openSUSE image will be downloaded and used.
 - All nodes are given 2GiB of RAM memory by default. We consider this to be a
   good default for regular deployments. You can change that with the
   `MASTER_MEMORY` and `MINION_MEMORY` environment variables.
@@ -40,9 +40,8 @@ Some weird things:
   environment variable.
 - If you want to run the terraform provisioning in debug mode, you can export
   the `TF_DEBUG` environment variable set to any value.
-- By default all images used are SUSE Linux Enterprise (SLE), but you can use
-  `FLAVOUR` environment variable set to `opensuse` if you prefer to use
-  opensuse as the base image for all virtual machines.
+- By default all images used are openSUSE. This can be tweaked with the
+  `FLAVOUR` environment variable, but for now there are no other supported platforms.
 - You can also set `SKIP_ORCHESTRATION` to avoid setting roles to machines and
   to avoid running a orchestration automatically.
 - If you want to completely skip the creation of a dashboard machine you can
@@ -62,9 +61,6 @@ Some weird things:
 This creates a dashboard, a kubernetes-master and 2 minions. It will run the
 orchestration in the dashboard machine, inside the salt-master container.
 
-#### SLE
-`MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
-
 #### openSUSE
 `FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
@@ -72,9 +68,6 @@ orchestration in the dashboard machine, inside the salt-master container.
 
 This creates a dashboard, a kubernetes-master and 2 minions. This will skip the
 role assigning of machines and the orchestration run.
-
-#### SLE
-`SKIP_ORCHESTRATION=1 MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 #### openSUSE
 `SKIP_ORCHESTRATION=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
@@ -84,9 +77,6 @@ role assigning of machines and the orchestration run.
 This creates 2 minions. No dashboard machine will be created, so you will need to specify
 where the salt-master is running, so those minions will be able to report back to that
 salt-master instance.
-
-#### SLE
-`DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 #### openSUSE
 `DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`

@@ -32,9 +32,9 @@ package found in the [ibs://SUSE:CA](https://api.suse.de/project/show/SUSE:CA) p
 
 * In order to provision the virtual machines, we use salt. In particular, we have
 our own repository for salt scripts needed for installing a proper Kubernetes
-cluster: https://gitlab.suse.de/docker/k8s-salt. As it's described later in the
+cluster: https://github.com/kubic-project/salt. As it's described later in the
 `Variables` section, you may use the `salt_dir` variable to point to a local
-checkout of the `k8s-salt` project.
+checkout of the `kubic-project/salt` project.
 
 ### Images
 
@@ -86,7 +86,7 @@ Some important variables are:
   * `salt_dir`
 
     The directory where the Salt scripts are (usually a checkout of [this
-    repo](https://gitlab.suse.de/docker/k8s-salt))
+    repo](https://github.com/kubic-project/salt))
 
   * `ssh_key`
 

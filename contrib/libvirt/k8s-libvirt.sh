@@ -14,7 +14,7 @@ DASHBOARD_MEMORY=${DASHBOARD_MEMORY:-2048}
 MASTER_MEMORY=${MASTER_MEMORY:-2048}
 MINIONS_SIZE=${MINIONS_SIZE:-2}
 MINION_MEMORY=${MINION_MEMORY:-2048}
-FLAVOUR=${FLAVOUR:-"sles"}
+FLAVOUR=${FLAVOUR:-"opensuse"}
 DASHBOARD_HOST=${DASHBOARD_HOST:-}
 SKIP_DASHBOARD=${SKIP_DASHBOARD:-"false"}
 SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
@@ -41,33 +41,26 @@ fi
 
 if [ "$1" == "apply" ]; then
     # Get the salt directory, which is a separate repo.
-    SALT_PATH="${SALT_PATH:-$PWD/../k8s-salt}"
+    SALT_PATH="${SALT_PATH:-$PWD/../salt}"
     if ! [ -d "$SALT_PATH" ]; then
-        echo "[+] Downloading k8s-salt to '$SALT_PATH'"
-        git clone gitlab@gitlab.suse.de:docker/k8s-salt "$SALT_PATH"
+        echo "[+] Downloading kubic-project/salt to '$SALT_PATH'"
+        git clone git@github.com:kubic-project/salt "$SALT_PATH"
     else
-        echo "[*] Already downloaded k8s-salt at '$SALT_PATH'"
+        echo "[*] Already downloaded kubic-project/salt at '$SALT_PATH'"
     fi
 
     if [ "$FLAVOUR" == "opensuse" ]; then
         IMAGE_PATH="${IMAGE_PATH:-$PWD/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2}"
-    else
-        IMAGE_PATH="${IMAGE_PATH:-$PWD/Base-SLES12-SP2.x86_64-cloud_ext4.qcow2}"
     fi
 
     if ! [ -f "$IMAGE_PATH" ]; then
         if [ "$FLAVOUR" == "opensuse" ]; then
             echo "[+] Downloading openSUSE qcow2 VM image to '$IMAGE_PATH'"
             wget -O "$IMAGE_PATH" "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
-        else
-            echo "[+] Downloading SLE qcow2 VM image to '$IMAGE_PATH'"
-            wget -O "$IMAGE_PATH" "http://download.suse.de/ibs/Devel:/Docker:/Images:/terraform:/SLE-12/images_SLE12_SP2/Base-SLES12-SP2.x86_64-cloud_ext4.qcow2"
         fi
     else
         if [ "$FLAVOUR" == "opensuse" ]; then
             echo "[*] Already downloaded openSUSE qcow2 VM image to '$IMAGE_PATH'"
-        else
-            echo "[*] Already downloaded SLE qcow2 VM image to '$IMAGE_PATH'"
         fi
     fi
 

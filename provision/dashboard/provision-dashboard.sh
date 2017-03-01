@@ -39,9 +39,6 @@ ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
 # repository information
 source /etc/os-release
 case $NAME in
-  "SLES" )
-    CONTAINERS_REPO="http://download.suse.de/ibs/Devel:/Docker/SLE_$(echo -n $VERSION_ID | cut -d. -f1)"
-    ;;
   *)
     CONTAINERS_REPO="http://download.opensuse.org/repositories/Virtualization:/containers/$(echo -n $PRETTY_NAME | tr " " "_")"
     ;;

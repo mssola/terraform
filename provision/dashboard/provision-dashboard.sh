@@ -31,8 +31,9 @@ K8S_MANIFESTS=/etc/kubernetes/manifests
 DASHBOARD_RPMS="kubernetes-node bind-utils etcd"
 DASHBOARD_SERVICES="docker kubelet etcd"
 
-# global args for running zypper
+# global args for running zypper and ssh/scp
 ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
+SSH_GLOBAL_ARGS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 ########################################################################
 
@@ -97,15 +98,8 @@ done
 
 ###################################################################
 
-add_pillar() {
-    log "Pillar: setting $1=\"$2\""
-    mkdir -p $(dirname $PILLAR_PARAMS_FILE)
-    cat <<-PARAM_SETTING >> "$PILLAR_PARAMS_FILE"
-
-# parameter set by $0
-$1: '$2'
-
-PARAM_SETTING
+get_container() {
+  docker ps | grep $1 | awk '{print $1}'
 }
 
 wait_for_container() {
@@ -122,16 +116,35 @@ wait_for_container() {
   log "$2 container is up"
 }
 
+exec_in_container() {
+  local c=$(get_container $1)
+  [ -n "$c" ] || abort "could not get $1 container"
+  shift
+  docker exec "$c" $@ || abort "could not run in $c: $@"
+}
+
+copy_from_container() {
+  local c=$(get_container $1)
+  [ -n "$c" ] || abort "could not get $1 container"
+  docker cp "$c:$2" "$3" || abort "could not copy file from $c:$2 to $3"
+}
+
+add_pillar() {
+  log "Pillar: setting $1=\"$2\""
+  exec_in_container "k8s_velum-dashboard" rails runner 'Pillar.create pillar: "'$1'", value: "'$2'"'
+}
+
+wait_for_port() {
+  until netstat -antp | grep ":::$1" &> /dev/null ; do
+    log "Waiting for port $1 to be open"
+    sleep 5
+  done
+}
+
 if [ -z "$FINISH" ] ; then
     log "Fixing the ssh keys permissions and setting the authorized keys"
     chmod 600 /root/.ssh/*
     cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
-
-    log "Setting some Pillars..."
-    [ -n "$INFRA"             ] && add_pillar infrastructure "$INFRA"
-    [ -n "$DASHBOARD_REF"     ] && add_pillar dashboard "$DASHBOARD_REF"
-    [ -n "$E2E"               ] && add_pillar e2e true
-    [ -n "$DOCKER_REG_MIRROR" ] && add_pillar docker_registry_mirror "$DOCKER_REG_MIRROR"
 
     log "Adding containers repository"
     zypper $ZYPPER_GLOBAL_ARGS ar -Gf "$CONTAINERS_REPO" containers || abort "could not enable containers repo"
@@ -143,11 +156,11 @@ if [ -z "$FINISH" ] ; then
     mkdir -p "$K8S_MANIFESTS"
     echo "KUBELET_ARGS=\"--v=2 --config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
 
+    log "Fixing etcd config and restarting it"
     sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@' /etc/sysconfig/etcd
     sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379@' /etc/sysconfig/etcd
     sed -i 's@#\?ETCD_ADVERTISE_CLIENT_URLS.*@ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379@' /etc/sysconfig/etcd
-
-    systemctl restart etcd
+    systemctl restart etcd  || abort "could not restart etcd"
 
     # Set persistent storage for salt master container
     mkdir -p /tmp/salt/master-pki
@@ -164,22 +177,19 @@ if [ -z "$FINISH" ] ; then
     wait_for_container "k8s_salt-minion-ca"  "certificate authority"
     wait_for_container "k8s_velum-mariadb"   "mariadb database"
     wait_for_container "k8s_velum-dashboard" "velum dashboard"
+
+    log "Setting up the database on velum container"
+    wait_for_port 3306
+    exec_in_container "k8s_velum-dashboard" rake db:setup
+
+    log "Setting some Pillars..."
+    [ -n "$INFRA"             ] && add_pillar infrastructure "$INFRA"
+    [ -n "$DASHBOARD_REF"     ] && add_pillar dashboard "$DASHBOARD_REF"
+    [ -n "$E2E"               ] && add_pillar e2e true
+    [ -n "$DOCKER_REG_MIRROR" ] && add_pillar docker_registry_mirror "$DOCKER_REG_MIRROR"
 else
-    VELUM_CONTAINER=`docker ps | grep k8s_velum-dashboard | awk '{print $1}'`
-    SALT_MASTER_CONTAINER=`docker ps | grep k8s_salt-master | awk '{print $1}'`
-    CA_CONTAINER=`docker ps | grep k8s_salt-minion-ca | awk '{print $1}'`
-
-    [ -n "$VELUM_CONTAINER" ]       || abort "could not get velum container"
-    [ -n "$SALT_MASTER_CONTAINER" ] || abort "could not get salt master container"
-    [ -n "$CA_CONTAINER" ]          || abort "could not get certificate authority container"
-
-    log "Setting up the database on velum container ($VELUM_CONTAINER)"
-    docker exec "$VELUM_CONTAINER" rake db:setup
-    [ $? -eq 0 ] || abort "database could not be setup"
-
-    log "Running orchestration on salt master container ($SALT_MASTER_CONTAINER)"
-    docker exec "$SALT_MASTER_CONTAINER" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes
-    [ $? -eq 0 ] || abort "salt-run did not succeed"
+    log "Running orchestration on salt master container"
+    exec_in_container "k8s_salt-master" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes
 
     if [ -z "$API_SERVER_IP" ] ; then
         API_SERVER_IP=$(host "$API_SERVER_DNS_NAME" | grep "has address" | awk '{print $NF}')
@@ -210,14 +220,12 @@ users:
 EOF
 
     log "Creating admin.tar with config files and certificates"
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null master:/etc/pki/minion.{crt,key} "$CONFIG_OUT_DIR"
-    [ $? -eq 0 ] || abort "could not copy file from master"
+    scp $SSH_GLOBAL_ARGS master:/etc/pki/minion.{crt,key} "$CONFIG_OUT_DIR" || abort "could not copy file from master"
 
     mv -f "$CONFIG_OUT_DIR/minion.crt" "$CONFIG_OUT_DIR/admin.crt"
     mv -f "$CONFIG_OUT_DIR/minion.key" "$CONFIG_OUT_DIR/admin.key"
 
-    docker cp "$CA_CONTAINER:/etc/pki/ca.crt" "$CONFIG_OUT_DIR/ca.crt"
-    [ $? -eq 0 ] || abort "could not copy file from $CA_CONTAINER"
+    copy_from_container "k8s_salt-minion-ca" "/etc/pki/ca.crt" "$CONFIG_OUT_DIR/ca.crt"
 
     cd "$CONFIG_OUT_DIR" && tar cvpf admin.tar admin.crt admin.key ca.crt kubeconfig
     [ -f admin.tar ] || abort "admin.tar not generated"

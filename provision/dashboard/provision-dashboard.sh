@@ -120,7 +120,7 @@ exec_in_container() {
   local c=$(get_container $1)
   [ -n "$c" ] || abort "could not get $1 container"
   shift
-  docker exec "$c" $@ || abort "could not run in $c: $@"
+  docker exec "$c" "$@" || abort "could not run in $c: $@"
 }
 
 copy_from_container() {
@@ -131,7 +131,7 @@ copy_from_container() {
 
 add_pillar() {
   log "Pillar: setting $1=\"$2\""
-  exec_in_container "k8s_velum-dashboard" rails runner 'Pillar.create pillar: "'$1'", value: "'$2'"'
+  exec_in_container "k8s_velum-dashboard" rails runner "Pillar.create pillar: \"$1\", value: \"$2\""
 }
 
 wait_for_port() {

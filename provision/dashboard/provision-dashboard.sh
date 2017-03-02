@@ -142,6 +142,10 @@ wait_for_port() {
   done
 }
 
+get_ip_for() {
+  getent hosts "$1" | cut -f1 -d" "
+}
+
 if [ -z "$FINISH" ] ; then
     log "Fixing the ssh keys permissions and setting the authorized keys"
     chmod 600 /root/.ssh/*
@@ -192,8 +196,11 @@ else
     log "Running orchestration on salt master container"
     exec_in_container "k8s_salt-master" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes
 
+    # we create a kubeconfig where the API server is specified with an IP
+    # because maybe the clients using this kubeconfig will not be able
+    # to resolve something like "master"...
     if [ -z "$API_SERVER_IP" ] ; then
-        API_SERVER_IP=$(host "$API_SERVER_DNS_NAME" | grep "has address" | awk '{print $NF}')
+        API_SERVER_IP=$(get_ip_for "$API_SERVER_DNS_NAME")
         [ -n "$API_SERVER_IP" ] || abort "could not determine the IP of the API server by resolving $API_SERVER_DNS_NAME: you must provide it with --api-server-ip"
     fi
 

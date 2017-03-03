@@ -25,7 +25,7 @@ API_SERVER_IP=
 K8S_MANIFESTS=/etc/kubernetes/manifests
 
 # rpms and services neccessary in the dashboard
-DASHBOARD_RPMS="kubernetes-node etcd"
+DASHBOARD_RPMS="kubernetes-kubelet etcd"
 DASHBOARD_SERVICES="docker kubelet etcd"
 
 # global args for running zypper and ssh/scp
@@ -146,6 +146,11 @@ get_ip_for() {
   getent hosts "$1" | cut -f1 -d" "
 }
 
+service_exist()   { systemctl list-unit-files | grep -q "$1.service" &> /dev/null ; }
+service_running() { systemctl status $1 | grep -q running &> /dev/null ; }
+
+###################################################################
+
 if [ -z "$FINISH" ] ; then
     log "Fixing the ssh keys permissions and setting the authorized keys"
     chmod 600 /root/.ssh/*
@@ -161,11 +166,10 @@ if [ -z "$FINISH" ] ; then
     mkdir -p "$K8S_MANIFESTS"
     echo "KUBELET_ARGS=\"--config=$K8S_MANIFESTS\"" > /etc/kubernetes/kubelet
 
-    log "Fixing etcd config and restarting it"
+    log "Fixing etcd config"
     sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@' /etc/sysconfig/etcd
     sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379@' /etc/sysconfig/etcd
     sed -i 's@#\?ETCD_ADVERTISE_CLIENT_URLS.*@ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379@' /etc/sysconfig/etcd
-    systemctl restart etcd  || abort "could not restart etcd"
 
     # Set persistent storage for salt master container
     mkdir -p /tmp/salt/master-pki
@@ -173,8 +177,12 @@ if [ -z "$FINISH" ] ; then
     mkdir -p /tmp/salt/minion-ca-pki && touch /tmp/salt/minion-ca-id
 
     for srv in $DASHBOARD_SERVICES ; do
-      systemctl start "$srv.service"  || abort "could not start service $srv"
-      systemctl enable "$srv.service" || abort "could not enable service $srv"
+      if service_exist "$srv" ; then
+        systemctl restart "$srv.service" || abort "could not start service $srv"
+        systemctl enable "$srv.service"  || abort "could not enable service $srv"
+      else
+        warn "could not enable & start $srv: not installed !!"
+      fi
     done
 
     # Wait for containers to be ready

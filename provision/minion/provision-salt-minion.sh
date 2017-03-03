@@ -6,6 +6,7 @@ abort() { log "FATAL: $1" ; exit 1 ; }
 
 SKIP_ROLE_ASSIGNMENTS=
 SALT_ROOT=/tmp
+MANIFESTS_DIR=/etc/kubernetes/manifests
 
 # global args for running zypper
 ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
@@ -34,9 +35,10 @@ while [ $# -gt 0 ] ; do
   shift
 done
 
-does_service_exist() {
-  systemctl list-unit-files | grep "$1.service" &> /dev/null
-}
+###################################################################
+
+service_exist()   { systemctl list-unit-files | grep -q "$1.service" &> /dev/null ; }
+service_running() { systemctl status $1 | grep -q running &> /dev/null ; }
 
 ###################################################################
 
@@ -77,10 +79,14 @@ mkdir -p /etc/salt/minion.d
 cp -v $SALT_ROOT_SUBDIR/config/minion.d/*  /etc/salt/minion.d
 [ -z $SKIP_ROLE_ASSIGNMENTS ] && cp -v $SALT_ROOT_SUBDIR/grains /etc/salt/
 
-if does_service_exist "kubelet" ; then
+if ls $MANIFESTS_DIR/* &> /dev/null ; then
+  if service_exist "kubelet" ; then
     log "Enabling & (re)starting the Kubelet"
-    systemctl enable kubelet   || abort "could not enable the kubelet"
-    systemctl restart kubelet  || abort "could not restart the kubelet"
+    systemctl restart "kubelet" || abort "could not restart the kubelet"
+    systemctl enable "kubelet"  || abort "could not enable the kubelet service"
+  else
+    warn "kubelet not installed and manifests found"
+  fi
 fi
 
 log "Enabling & (re)starting the Salt minion"

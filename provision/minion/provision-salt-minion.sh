@@ -34,6 +34,10 @@ while [ $# -gt 0 ] ; do
   shift
 done
 
+does_service_exist() {
+  systemctl list-unit-files | grep "$1.service" &> /dev/null
+}
+
 ###################################################################
 
 source /etc/os-release
@@ -73,9 +77,11 @@ mkdir -p /etc/salt/minion.d
 cp -v $SALT_ROOT_SUBDIR/config/minion.d/*  /etc/salt/minion.d
 [ -z $SKIP_ROLE_ASSIGNMENTS ] && cp -v $SALT_ROOT_SUBDIR/grains /etc/salt/
 
-log "Enabling & (re)starting the Salt minion"
-systemctl enable kubelet   || abort "could not enable the kubelet"
-systemctl restart kubelet  || abort "could not restart the kubelet"
+if does_service_exist "kubelet" ; then
+    log "Enabling & (re)starting the Kubelet"
+    systemctl enable kubelet   || abort "could not enable the kubelet"
+    systemctl restart kubelet  || abort "could not restart the kubelet"
+fi
 
 log "Enabling & (re)starting the Salt minion"
 systemctl enable salt-minion   || abort "could not enable the Salt minion"

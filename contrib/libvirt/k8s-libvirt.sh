@@ -44,7 +44,7 @@ if [ "$1" == "apply" ]; then
     SALT_PATH="${SALT_PATH:-$PWD/../salt}"
     if ! [ -d "$SALT_PATH" ]; then
         echo "[+] Downloading kubic-project/salt to '$SALT_PATH'"
-        git clone git@github.com:kubic-project/salt "$SALT_PATH"
+        git clone https://github.com/kubic-project/salt "$SALT_PATH"
     else
         echo "[*] Already downloaded kubic-project/salt at '$SALT_PATH'"
     fi

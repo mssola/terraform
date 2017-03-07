@@ -51,22 +51,36 @@ if [ "$1" == "apply" ]; then
 
     if [ "$FLAVOUR" == "opensuse" ]; then
         IMAGE_PATH="${IMAGE_PATH:-$PWD/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2}"
+    elif [ "$FLAVOUR" == "caasp" ]; then
+        IMAGE_PATH="${IMAGE_PATH:-$PWD/SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-1.0.0-Build8.13.qcow2}"
     fi
 
     if ! [ -f "$IMAGE_PATH" ]; then
         if [ "$FLAVOUR" == "opensuse" ]; then
             echo "[+] Downloading openSUSE qcow2 VM image to '$IMAGE_PATH'"
             wget -O "$IMAGE_PATH" "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
+        elif [ "$FLAVOUR" == "caasp" ]; then
+            echo "[+] Downloading SUSE CaaSP qcow2 VM image to '$IMAGE_PATH'"
+            wget -O "$IMAGE_PATH" "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-1.0.0-Build8.13.qcow2"
         fi
     else
         if [ "$FLAVOUR" == "opensuse" ]; then
             echo "[*] Already downloaded openSUSE qcow2 VM image to '$IMAGE_PATH'"
+        elif [ "$FLAVOUR" == "caasp" ]; then
+            echo "[*] Already downloaded SUSE CaaSP qcow2 VM image to '$IMAGE_PATH'"
         fi
     fi
 
     # Make sure that libvirt is started.
     # While this probably shouldn't be in this script, meh.
     sudo systemctl start libvirtd.service virtlogd.socket virtlockd.socket || :
+fi
+
+# Select the profile file depending on the flavour.
+if [ "$FLAVOUR" == "caasp" ]; then
+    profile="libvirt-caasp.profile"
+else
+    profile="libvirt-obs.profile"
 fi
 
 [ -n "$TF_DEBUG" ] && export TF_LOG=debug
@@ -76,7 +90,7 @@ fi
 ./k8s-setup \
     --verbose \
     $force \
-    -F libvirt-obs.profile \
+    -F $profile \
     -V salt_dir="$SALT_PATH" \
     -V cluster_prefix=$prefix \
     -V skip_dashboard=$SKIP_DASHBOARD \

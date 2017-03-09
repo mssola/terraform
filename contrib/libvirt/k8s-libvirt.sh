@@ -52,7 +52,7 @@ if [ "$1" == "apply" ]; then
     if [ "$FLAVOUR" == "opensuse" ]; then
         IMAGE_PATH="${IMAGE_PATH:-$PWD/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2}"
     elif [ "$FLAVOUR" == "caasp" ]; then
-        IMAGE_PATH="${IMAGE_PATH:-$PWD/SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-1.0.0-Build8.13.qcow2}"
+        IMAGE_PATH="${IMAGE_PATH:-$PWD/SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64.qcow2}"
     fi
 
     if ! [ -f "$IMAGE_PATH" ]; then
@@ -61,7 +61,8 @@ if [ "$1" == "apply" ]; then
             wget -O "$IMAGE_PATH" "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
         elif [ "$FLAVOUR" == "caasp" ]; then
             echo "[+] Downloading SUSE CaaSP qcow2 VM image to '$IMAGE_PATH'"
-            wget -O "$IMAGE_PATH" "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-1.0.0-Build8.13.qcow2"
+            wget -r -l1 -nd  "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2"
+            find /tmp -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2" -prune -exec mv {} $IMAGE_PATH ';'
         fi
     else
         if [ "$FLAVOUR" == "opensuse" ]; then

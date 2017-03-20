@@ -21,6 +21,7 @@ SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
 
 [ $SKIP_DASHBOARD != "false" ] && SKIP_DASHBOARD="true"
 [ $SKIP_ORCHESTRATION != "false" ] && SKIP_ORCHESTRATION="true"
+[ $LATEST_IMAGE != "false" ] && LATEST_IMAGE="true"
 
 SSH_DEFAULT_ARGS="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 
@@ -55,6 +56,8 @@ if [ "$1" == "apply" ]; then
         IMAGE_PATH="${IMAGE_PATH:-$PWD/SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64.qcow2}"
     fi
 
+    # Removing the existing image will force the script to download the latest
+    [ $LATEST_IMAGE == "true" ] && rm -rf $IMAGE_PATH
     if ! [ -f "$IMAGE_PATH" ]; then
         if [ "$FLAVOUR" == "opensuse" ]; then
             echo "[+] Downloading openSUSE qcow2 VM image to '$IMAGE_PATH'"

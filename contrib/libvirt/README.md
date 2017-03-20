@@ -78,6 +78,10 @@ salt-master instance. Example:
 
 `DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
+By default always the latest image will be downloaded. To turn this off just set the `LATEST_IMAGE` ENV
+
+`LATEST_IMAGE=false DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+
 ## Libvirt setup
 
 You need to have the following packages (here's the zypper command-line for it).

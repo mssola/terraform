@@ -19,9 +19,9 @@ DASHBOARD_HOST=${DASHBOARD_HOST:-}
 SKIP_DASHBOARD=${SKIP_DASHBOARD:-"false"}
 SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
 
-[ $SKIP_DASHBOARD != "false" ] && SKIP_DASHBOARD="true"
-[ $SKIP_ORCHESTRATION != "false" ] && SKIP_ORCHESTRATION="true"
-[ $LATEST_IMAGE != "false" ] && LATEST_IMAGE="true"
+[ "$SKIP_DASHBOARD" != "false" ] && SKIP_DASHBOARD="true"
+[ "$SKIP_ORCHESTRATION" != "false" ] && SKIP_ORCHESTRATION="true"
+[ "$LATEST_IMAGE" != "false" ] && LATEST_IMAGE="true"
 
 SSH_DEFAULT_ARGS="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 

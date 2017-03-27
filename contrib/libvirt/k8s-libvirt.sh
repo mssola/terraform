@@ -56,9 +56,7 @@ if [ "$1" == "apply" ]; then
         IMAGE_PATH="${IMAGE_PATH:-$PWD/SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64.qcow2}"
     fi
 
-    # Removing the existing image will force the script to download the latest
-    [ $LATEST_IMAGE == "true" ] && rm -rf $IMAGE_PATH
-    if ! [ -f "$IMAGE_PATH" ]; then
+    if ! [ -f "$IMAGE_PATH" ] || [ "$LATEST_IMAGE" == "true" ]; then
         if [ "$FLAVOUR" == "opensuse" ]; then
             echo "[+] Downloading openSUSE qcow2 VM image to '$IMAGE_PATH'"
             wget -O "$IMAGE_PATH" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"

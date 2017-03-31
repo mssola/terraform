@@ -132,7 +132,8 @@ copy_from_container() {
 
 add_pillar() {
   log "Pillar: setting $1=\"$2\""
-  exec_in_container "k8s_velum-dashboard" rails runner "Pillar.create pillar: \"$1\", value: \"$2\""
+  exec_in_container "k8s_velum-dashboard" \
+    bundle exec rails runner "Pillar.create pillar: \"$1\", value: \"$2\""
 }
 
 wait_for_port() {
@@ -171,25 +172,21 @@ if [ -z "$FINISH" ] ; then
     sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379@' /etc/sysconfig/etcd
     sed -i 's@#\?ETCD_ADVERTISE_CLIENT_URLS.*@ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379@' /etc/sysconfig/etcd
 
-    # Set persistent storage for salt master container
-    mkdir -p /tmp/salt/master-pki
-    # Set persistent storage for salt minion certificate authority container
-    mkdir -p /tmp/salt/minion-ca-pki && touch /tmp/salt/minion-ca-id
-
     for srv in $DASHBOARD_SERVICES ; do
       if service_exist "$srv" ; then
-        systemctl restart "$srv.service" || abort "could not start service $srv"
-        systemctl enable "$srv.service"  || abort "could not enable service $srv"
+        systemctl start "$srv.service"  || abort "could not start service $srv"
+        systemctl enable "$srv.service" || abort "could not enable service $srv"
       else
         warn "could not enable & start $srv: not installed !!"
       fi
     done
 
     # Wait for containers to be ready
-    wait_for_container "k8s_salt-master"     "salt master"
-    wait_for_container "k8s_salt-minion-ca"  "certificate authority"
-    wait_for_container "k8s_velum-mariadb"   "mariadb database"
-    wait_for_container "k8s_velum-dashboard" "velum dashboard"
+    wait_for_container "k8s_salt-master"           "salt master"
+    wait_for_container "k8s_salt-minion-ca"        "certificate authority"
+    wait_for_container "k8s_velum-mariadb"         "mariadb database"
+    wait_for_container "k8s_velum-dashboard"       "velum dashboard"
+    wait_for_container "k8s_velum-event-processor" "events processor"
 
     log "Setting up the database on velum container"
     wait_for_port 3306

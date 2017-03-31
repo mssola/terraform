@@ -53,14 +53,14 @@ Requires:       terraform
 Terraforms preprocessor and scripts for deploying a Kubernetes cluster
 
 %prep
-%setup -q -n %{name}-master
+%setup -q -n $GITREPONAME-master
 
 %build
 
 %install
 rm -rf %{buildroot}%{_datadir}
 mkdir -p %{buildroot}%{_datadir}/terraform/kubernetes
-cp -R %{_builddir}/kubernetes-terraform-%{version}/*  %{buildroot}%{_datadir}/terraform/kubernetes/
+cp -R %{_builddir}/terraform-master/*  %{buildroot}%{_datadir}/terraform/kubernetes/
 
 %files
 %defattr(-,root,root)

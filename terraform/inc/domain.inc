@@ -69,6 +69,12 @@ resource "<%= domain_type %>" "<%= name %>" {
             memory = <%= memory %>
         <% end %>
 
+        <% if exists? "#{name}_cpus" %>
+            vcpu = <%= eval("#{name}_cpus") %>
+        <% elsif exists?("cpus") %>
+            vcpu = <%= cpus %>
+        <% end %>
+
         <% if enabled?("is_uefi_image") && exists?("firmware") %>
             firmware = "<%= firmware %>"
         <% end %>

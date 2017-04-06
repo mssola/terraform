@@ -10,9 +10,12 @@ fi
 CLUSTER_CONF_DIR=$(pwd)/cluster-config
 
 # Variables for master and minion nodes.
+MINIONS_SIZE=${MINIONS_SIZE:-2}
+DASHBOARD_CPUS=${DASHBOARD_CPUS:-1}
+MASTER_CPUS=${MASTER_CPUS:-1}
+MINION_CPUS=${MINION_CPUS:-1}
 DASHBOARD_MEMORY=${DASHBOARD_MEMORY:-2048}
 MASTER_MEMORY=${MASTER_MEMORY:-2048}
-MINIONS_SIZE=${MINIONS_SIZE:-2}
 MINION_MEMORY=${MINION_MEMORY:-2048}
 FLAVOUR=${FLAVOUR:-"opensuse"}
 DASHBOARD_HOST=${DASHBOARD_HOST:-}
@@ -96,9 +99,12 @@ fi
     -V salt_dir="$SALT_PATH" \
     -V cluster_prefix=$prefix \
     -V skip_dashboard=$SKIP_DASHBOARD \
-    -V dashboard_memory=$DASHBOARD_MEMORY \
-    -V master_memory=$MASTER_MEMORY \
     -V kube_minions_size=$MINIONS_SIZE \
+    -V dashboard_cpus=$DASHBOARD_CPUS \
+    -V dashboard_memory=$DASHBOARD_MEMORY \
+    -V master_cpus=$MASTER_CPUS \
+    -V master_memory=$MASTER_MEMORY \
+    -V minion_cpus=$MINION_CPUS \
     -V minion_memory=$MINION_MEMORY \
     -V volume_source="$IMAGE_PATH" \
     -V dashboard_host=$DASHBOARD_HOST \

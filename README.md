@@ -139,8 +139,16 @@ Some important variables are:
   * `<component name>_memory`
 
     The amount of memory to be assigned to the given component in MB. Possible
-    options for components are: `master`, `minion` and `salt`. The default value
+    options for components are: `master`, `minion` and `dashboard`. The default value
     is 512 MB. Moreover, if you want to setup the same value for all of them,
+    you can use the `memory` shortcut. **Note**: this only works for the libvirt
+    setup. Support for openstack is still being worked.
+
+  * `<component name>_cpus`
+
+    The number of vcpus to be assigned to the given component. Possible
+    options for components are: `master`, `minion` and `dashboard`. The default value
+    is 1. Moreover, if you want to setup the same value for all of them,
     you can use the `memory` shortcut. **Note**: this only works for the libvirt
     setup. Support for openstack is still being worked.
 

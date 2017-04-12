@@ -21,8 +21,9 @@ API_SERVER_PORT=6443
 # an (optional) extra IP for the API server (usually a floating IP)
 API_SERVER_IP=
 
-# kubernetes manifests location for the kubelet
-K8S_MANIFESTS=/etc/kubernetes/manifests
+# kubernetes manifests locations
+K8S_MANIFESTS_IN=/usr/share/caasp-container-manifests
+K8S_MANIFESTS_OUT=/etc/kubernetes/manifests
 
 # rpms and services neccessary in the dashboard
 DASHBOARD_RPMS="kubernetes-kubelet etcd"
@@ -33,6 +34,19 @@ ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
 SSH_GLOBAL_ARGS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 ########################################################################
+
+# replacements to do in the etcd config
+ETCD_REPL="s|#\?ETCD_LISTEN_PEER_URLS.*|ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380|g; \
+           s|#\?ETCD_LISTEN_CLIENT_URLS.*|ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379|g; \
+           s|#\?ETCD_ADVERTISE_CLIENT_URLS.*|ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379|g"
+
+# replacements to do in the manifest files
+MANIFEST_REPL="s|/usr/share/salt/kubernetes/pillar|/tmp/salt/pillar|g; \
+               s|/usr/share/salt/kubernetes/salt|/tmp/salt/sls|g; \
+               s|/usr/share/caasp-container-manifests/config/salt/grains/ca|/tmp/salt/grains/ca|g; \
+               s|/usr/share/caasp-container-manifests/config/salt/minion.d-ca/signing_policies.conf|/tmp/salt/sls/ca/signing_policies.conf|g; \
+               s|/usr/share/caasp-container-manifests/config/salt/minion.d-ca/minion.conf|/tmp/salt/config/minion.d-ca|g; \
+               s|/usr/share/caasp-container-manifests/config/salt/master.d|/tmp/salt/config/master.d|g"
 
 # repository information
 source /etc/os-release
@@ -150,6 +164,9 @@ get_ip_for() {
 service_exist()   { systemctl list-unit-files | grep -q "$1.service" &> /dev/null ; }
 service_running() { systemctl status $1 | grep -q running &> /dev/null ; }
 
+replace_in_manifest() { sed -e "$MANIFEST_REPL" "$1" > "$2" ; }
+replace_in_etcd()     { sed -e "$ETCD_REPL"     "$1" > "$2" ; }
+
 ###################################################################
 
 if [ -z "$FINISH" ] ; then
@@ -163,10 +180,17 @@ if [ -z "$FINISH" ] ; then
     log "Installing kubernetes-node"
     zypper $ZYPPER_GLOBAL_ARGS in -y $DASHBOARD_RPMS || abort "could not install packages"
 
-    log "Fixing etcd config"
-    sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@' /etc/sysconfig/etcd
-    sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379@' /etc/sysconfig/etcd
-    sed -i 's@#\?ETCD_ADVERTISE_CLIENT_URLS.*@ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379@' /etc/sysconfig/etcd
+    log "Copying kubelet manifests (with replacements)"
+    service_running "kubelet" && systemctl stop kubelet
+    for f in $K8S_MANIFESTS_IN/*.yaml ; do
+      proc_manif="$K8S_MANIFESTS_OUT/$(basename $f)"
+      log "... generating $proc_manif"
+      replace_in_manifest "$f" "$proc_manif"
+    done
+
+    log "Tweaking etcd config"
+    service_running "etcd" && systemctl stop etcd
+    replace_in_etcd /etc/sysconfig/etcd /etc/sysconfig/etcd.new && mv /etc/sysconfig/etcd.new /etc/sysconfig/etcd
 
     for srv in $DASHBOARD_SERVICES ; do
       if service_exist "$srv" ; then

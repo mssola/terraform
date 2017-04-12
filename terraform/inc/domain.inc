@@ -143,17 +143,6 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                "mkdir -p /etc/kubernetes/manifests",
-            ]
-        }
-
-        provisioner "file" {
-            source      = "<%= tf_dir %>/provision/dashboard/manifests/"
-            destination = "/etc/kubernetes/manifests"
-        }
-
-        provisioner "remote-exec" {
-            inline = [
                 <%# depending on some variables, we set some flags in the Salt master %>
                 <%# that will be translated to data in the Salt pillar... %>
 

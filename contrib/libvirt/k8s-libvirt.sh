@@ -127,11 +127,12 @@ if [ $SKIP_ORCHESTRATION == "false" ] && [ $SKIP_DASHBOARD == "false" ]; then
         root@`terraform output ip_dashboard` \
         bash /tmp/provision-dashboard.sh --finish
 
+    mkdir -p "$CLUSTER_CONF_DIR"
     scp -i ssh/id_docker \
         $SSH_DEFAULT_ARGS \
-        root@`terraform output ip_dashboard`:admin.tar $CLUSTER_CONF_DIR
+        root@`terraform output ip_dashboard`:admin.tar "$CLUSTER_CONF_DIR/"
 
-    tar xvpf $CLUSTER_CONF_DIR/admin.tar -C $CLUSTER_CONF_DIR
+    tar xvpf $CLUSTER_CONF_DIR/admin.tar -C "$CLUSTER_CONF_DIR"
 
     echo "Everything is fine, enjoy your cluster!"
 

@@ -233,6 +233,9 @@ if [ -z "$FINISH" ] ; then
     log "Setting up the database on velum container"
     exec_in_container "k8s_velum-dashboard" rake db:setup
 
+    log "Removing all Salt keys in the master"
+    exec_in_container "k8s_salt-master" salt-key --delete-all
+
     log "Setting some Pillars..."
     [ -n "$INFRA"             ] && add_pillar infrastructure "$INFRA"
     [ -n "$DASHBOARD_REF"     ] && add_pillar dashboard "$DASHBOARD_REF"

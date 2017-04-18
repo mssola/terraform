@@ -156,9 +156,13 @@ add_pillar() {
 }
 
 wait_for_port() {
-  until netstat -antp | grep ":::$1" &> /dev/null ; do
-    log "Waiting for port $1 to be open"
+  local port=$1
+  local count=0
+  until netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".$port"' &> /dev/null ; do
+    log "(waiting for port $port to be open...)"
     sleep 5
+    [ "$count" -gt "$CONTAINER_START_TIMEOUT" ] && abort "timeout waiting for port $port"
+    count=$((count+5))
   done
 }
 

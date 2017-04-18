@@ -22,12 +22,12 @@ API_SERVER_PORT=6443
 API_SERVER_IP=
 
 # kubernetes manifests locations
-K8S_MANIFESTS_IN=/usr/share/caasp-container-manifests
-K8S_MANIFESTS_OUT=/etc/kubernetes/manifests
+K8S_MANIFESTS_IN="/usr/share/caasp-container-manifests"
+K8S_MANIFESTS_OUT="/etc/kubernetes/manifests"
 
 # rpms and services neccessary in the dashboard
 DASHBOARD_RPMS="kubernetes-kubelet etcd"
-DASHBOARD_SERVICES="docker kubelet etcd"
+DASHBOARD_SERVICES="docker container-feeder kubelet etcd"
 
 # global args for running zypper and ssh/scp
 ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"

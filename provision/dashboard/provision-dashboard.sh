@@ -21,6 +21,11 @@ API_SERVER_PORT=6443
 # an (optional) extra IP for the API server (usually a floating IP)
 API_SERVER_IP=
 
+# some ports we use for detecting a service is running
+MARIADB_PORT=3306
+SALT_MASTER_PORT=4505
+SALT_API_PORT=8000
+
 # kubernetes manifests locations
 K8S_MANIFESTS_IN="/usr/share/caasp-container-manifests"
 K8S_MANIFESTS_OUT="/etc/kubernetes/manifests"
@@ -203,15 +208,25 @@ if [ -z "$FINISH" ] ; then
       fi
     done
 
+    # some dependencies between containers:
+    # salt-master REQUIRES mariadb
+    # velum       REQUIRES mariadb
+    # salt-ca     REQUIRES salt-master
+    # salt-api    REQUIRES salt-master
+    # velum       REQUIRES salt-api
+
     # Wait for containers to be ready
-    wait_for_container "k8s_salt-master"           "salt master"
-    wait_for_container "k8s_salt-minion-ca"        "certificate authority"
     wait_for_container "k8s_velum-mariadb"         "mariadb database"
+    wait_for_port $MARIADB_PORT
+    wait_for_container "k8s_salt-master"           "salt master"
+    wait_for_port $SALT_MASTER_PORT
+    wait_for_container "k8s_salt-minion-ca"        "certificate authority"
+    wait_for_container "k8s_salt-api"              "API server"
+    wait_for_port $SALT_API_PORT
     wait_for_container "k8s_velum-dashboard"       "velum dashboard"
     wait_for_container "k8s_velum-event-processor" "events processor"
 
     log "Setting up the database on velum container"
-    wait_for_port 3306
     exec_in_container "k8s_velum-dashboard" rake db:setup
 
     log "Setting some Pillars..."

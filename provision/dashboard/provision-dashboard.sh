@@ -49,8 +49,8 @@ ETCD_REPL="s|#\?ETCD_LISTEN_PEER_URLS.*|ETCD_LISTEN_PEER_URLS=http://0.0.0.0:238
 MANIF_PATHS_SUBS="s|/usr/share/salt/kubernetes/pillar|/tmp/salt/pillar|g; \
                   s|/usr/share/salt/kubernetes/salt|/tmp/salt/sls|g; \
                   s|/usr/share/caasp-container-manifests/config/salt/grains/ca|/tmp/salt/grains/ca|g; \
-                  s|/usr/share/caasp-container-manifests/config/salt/minion.d-ca/signing_policies.conf|/tmp/salt/sls/ca/signing_policies.conf|g; \
-                  s|/usr/share/caasp-container-manifests/config/salt/minion.d-ca/minion.conf|/tmp/salt/config/minion.d-ca|g; \
+                  s|/usr/share/caasp-container-manifests/config/salt/minion.d-ca/|/tmp/salt/sls/ca/|g; \
+                  s|/usr/share/caasp-container-manifests/config/salt/minion.d-ca/|/tmp/salt/config/minion.d-ca/|g; \
                   s|/usr/share/caasp-container-manifests/config/salt/master.d|/tmp/salt/config/master.d|g"
 
 # repository information

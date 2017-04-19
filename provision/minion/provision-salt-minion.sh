@@ -77,7 +77,11 @@ fi
 log "Copying the Salt config"
 mkdir -p /etc/salt/minion.d
 cp -v $SALT_ROOT_SUBDIR/config/minion.d/*  /etc/salt/minion.d
-[ -z $SKIP_ROLE_ASSIGNMENTS ] && cp -v $SALT_ROOT_SUBDIR/grains /etc/salt/
+[ -z $SKIP_ROLE_ASSIGNMENTS ] && cp -v "$SALT_ROOT_SUBDIR/grains" /etc/salt/
+
+log "Starting the container-feeder"
+systemctl start "container-feeder"  || abort "could not start the container-feeder"
+systemctl enable "container-feeder" || abort "could not enable the container-feeder service"
 
 if ls $MANIFESTS_DIR/* &> /dev/null ; then
   if service_exist "kubelet" ; then

@@ -116,7 +116,7 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% if enabled? "is_dashboard" %>
 
         provisioner "file" {
-            source      = "<%= tf_dir %>/provision/dashboard/provision-dashboard.sh"
+            source      = "<%= tf_dir %>/provision/dashboard.sh"
             destination = "/tmp/provision-dashboard.sh"
         }
 
@@ -159,7 +159,7 @@ resource "<%= domain_type %>" "<%= name %>" {
     <% else %>
 
         provisioner "file" {
-            source      = "<%= tf_dir %>/provision/minion/provision-salt-minion.sh"
+            source      = "<%= tf_dir %>/provision/salt-minion.sh"
             destination = "/tmp/provision-salt-minion.sh"
         }
 

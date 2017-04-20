@@ -155,10 +155,14 @@ add_pillar() {
     bundle exec rails runner "Pillar.create pillar: \"$1\", value: \"$2\""
 }
 
+tcp_port_open() {
+  netstat -aln | awk '$6 == "LISTEN" && $4 ~ "[\\.\\:]'$1'$"' | grep -q tcp &> /dev/null
+}
+
 wait_for_port() {
   local port=$1
   local count=0
-  until netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".$port"' &> /dev/null ; do
+  until tcp_port_open "$port" ; do
     log "(waiting for port $port to be open...)"
     sleep 5
     [ "$count" -gt "$CONTAINER_START_TIMEOUT" ] && abort "timeout waiting for port $port"

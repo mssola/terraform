@@ -120,6 +120,7 @@ resource "<%= domain_type %>" "<%= name %>" {
             destination = "/tmp/provision-dashboard.sh"
         }
 
+        # we must copy the Salt pillar and states to a RW directory in the VM
         provisioner "remote-exec" {
             inline = [
                 "mkdir -p <%= salt_root %>/salt",
@@ -143,7 +144,7 @@ resource "<%= domain_type %>" "<%= name %>" {
 
                 <% prov_args  = "--dashboard #{dashboard_ref} --root #{salt_root}" %>
                 <% if exists? "infra" %>
-                    <% prov_args  = "--infra #{infra}" %>
+                    <% prov_args  = "#{prov_args} --infra #{infra}" %>
                 <% end %>
                 <% if enabled? "e2e" %>
                     <% prov_args  = "#{prov_args} --e2e" %>
@@ -162,23 +163,12 @@ resource "<%= domain_type %>" "<%= name %>" {
             destination = "/tmp/provision-salt-minion.sh"
         }
 
-        provisioner "file" {
-            source      = "<%= tf_dir %>/provision/minion/salt"
-            destination = "<%= salt_root %>"
-        }
-
-        <% if !enabled?("skip_role_assignments") && !enabled?("skip_dashboard") %>
-            provisioner "file" {
-                source      = "<%= tf_dir %>/provision/minion/salt/all-grains/<%= hostname %>"
-                destination = "<%= salt_root %>/salt/grains"
-            }
-        <% end %>
-
         provisioner "remote-exec" {
             inline = [
-                <% prov_args  = "--root #{salt_root} " %>
-                <% prov_args  = "--dashboard-host #{dashboard} " %>
-                <% prov_args += "--skip-role-assignments " if enabled?("skip_role_assignments") || enabled?("skip_dashboard") %>
+                <% prov_args  = "--dashboard-host #{dashboard}" %>
+                <% if !enabled?("skip_role_assignments") && !enabled?("skip_dashboard") %>
+                  <% prov_args  = "#{prov_args} --role #{role}" %>
+                <% end %>
                 "bash /tmp/provision-salt-minion.sh <%= prov_args %>",
             ]
         }

@@ -4,9 +4,9 @@ log()   { echo ">>> $1" ; }
 warn()  { log "WARNING: $1" ; }
 abort() { log "FATAL: $1" ; exit 1 ; }
 
-SKIP_ROLE_ASSIGNMENTS=
-SALT_ROOT=/tmp
 MANIFESTS_DIR=/etc/kubernetes/manifests
+DASHBOARD_HOST=
+ROLES=
 
 # global args for running zypper
 ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
@@ -20,12 +20,8 @@ while [ $# -gt 0 ] ; do
       DASHBOARD_HOST=$2
       shift
       ;;
-    --root)
-      SALT_ROOT=$2
-      shift
-      ;;
-    --skip-role-assignments)
-      SKIP_ROLE_ASSIGNMENTS=1
+    -R|--role)
+      ROLES="$ROLES $2"
       shift
       ;;
     *)
@@ -40,11 +36,22 @@ done
 service_exist()   { systemctl list-unit-files | grep -q "$1.service" &> /dev/null ; }
 service_running() { systemctl status $1 | grep -q running &> /dev/null ; }
 
+set_salt_master() {
+    log "Setting Salt master to $1"
+    echo "master: $1" > "/etc/salt/minion.d/minion.conf"
+}
+
+set_roles() {
+  log "Setting roles: $@"
+  echo "roles:" > /etc/salt/grains
+  for g in $@ ; do
+    echo "- $g" >> /etc/salt/grains
+  done
+}
+
 ###################################################################
 
 source /etc/os-release
-
-SALT_ROOT_SUBDIR=$SALT_ROOT/salt
 
 log "Fixing the ssh keys permissions and setting the authorized keys"
 chmod 600 /root/.ssh/*
@@ -65,20 +72,17 @@ if [ -n "$DASHBOARD_IP" ] ; then
     log "Hardcoding dashboard IP"
     echo "$DASHBOARD_IP dashboard $DASHBOARD_HOST" >> /etc/hosts
 fi
-if [ -n "$DASHBOARD_HOST" ] ; then
-    log "Setting Salt master to $DASHBOARD_HOST"
-    echo "master: $DASHBOARD_HOST" > "$SALT_ROOT_SUBDIR/config/minion.d/minion.conf"
-else
-    warn "no Salt master set!"
+
+# set the Salt master
+if   [ -n "$DASHBOARD_HOST" ] ; then set_salt_master "$DASHBOARD_HOST"
+elif [ -n "$DASHBOARD_IP"   ] ; then set_salt_master "$DASHBOARD_IP"
+else                                 set_salt_master "dashboard"
 fi
 
-[ -f "$SALT_ROOT_SUBDIR/config/minion.d/minion.conf" ] || warn "no minon.conf file!"
+# ... the grains
+[ -n "$ROLES" ] && set_roles $ROLES
 
-log "Copying the Salt config"
-mkdir -p /etc/salt/minion.d
-cp -v $SALT_ROOT_SUBDIR/config/minion.d/*  /etc/salt/minion.d
-[ -z $SKIP_ROLE_ASSIGNMENTS ] && cp -v "$SALT_ROOT_SUBDIR/grains" /etc/salt/
-
+# ... and start all the services necessary
 log "Starting the container-feeder"
 systemctl start "container-feeder"  || abort "could not start the container-feeder"
 systemctl enable "container-feeder" || abort "could not enable the container-feeder service"
@@ -96,11 +100,6 @@ fi
 log "Enabling & (re)starting the Salt minion"
 systemctl enable salt-minion   || abort "could not enable the Salt minion"
 systemctl restart salt-minion  || abort "could not restart the Salt minion"
-
-log "Salt minion config file:"
-log "------------------------------"
-cat /etc/salt/minion.d/minion.conf || abort "no salt minion configuration"
-log "------------------------------"
 sleep 2
 log "Salt minion status:"
 log "------------------------------"

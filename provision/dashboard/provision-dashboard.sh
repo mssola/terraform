@@ -183,11 +183,19 @@ if [ -z "$FINISH" ] ; then
     chmod 600 /root/.ssh/*
     cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 
-    log "Adding containers repository"
-    zypper $ZYPPER_GLOBAL_ARGS ar -Gf "$CONTAINERS_REPO" containers || abort "could not enable containers repo"
+    case $NAME in
+      "CAASP")
+        # do not try to install anything in CaaSP hosts
+        log "Skipping installations"
+        ;;
+      *)
+        log "Adding containers repository"
+        zypper $ZYPPER_GLOBAL_ARGS ar -Gf "$CONTAINERS_REPO" containers || abort "could not enable containers repo"
 
-    log "Installing kubernetes-node"
-    zypper $ZYPPER_GLOBAL_ARGS in -y $DASHBOARD_RPMS || abort "could not install packages"
+        log "Installing kubernetes-node"
+        zypper $ZYPPER_GLOBAL_ARGS in -y $DASHBOARD_RPMS || abort "could not install packages"
+        ;;
+    esac
 
     log "Copying kubelet manifests (with replacements)"
     service_running "kubelet" && systemctl stop kubelet

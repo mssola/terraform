@@ -82,10 +82,14 @@ fi
 # ... the grains
 [ -n "$ROLES" ] && set_roles $ROLES
 
-# ... and start all the services necessary
-log "Starting the container-feeder"
-systemctl start "container-feeder"  || abort "could not start the container-feeder"
-systemctl enable "container-feeder" || abort "could not enable the container-feeder service"
+case $NAME in
+  "CAASP")
+    # Start container-feeder only in caasp.
+    log "Starting the container-feeder"
+    systemctl start "container-feeder"  || abort "could not start the container-feeder"
+    systemctl enable "container-feeder" || abort "could not enable the container-feeder service"
+    ;;
+esac
 
 if ls $MANIFESTS_DIR/* &> /dev/null ; then
   if service_exist "kubelet" ; then

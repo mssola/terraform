@@ -40,15 +40,6 @@ SSH_GLOBAL_ARGS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 ########################################################################
 
-# replacements to do in the etcd config
-ETCD_REPL="s|#\?ETCD_LISTEN_PEER_URLS.*|ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380|g; \
-           s|#\?ETCD_LISTEN_CLIENT_URLS.*|ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379|g; \
-           s|#\?ETCD_ADVERTISE_CLIENT_URLS.*|ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379|g"
-
-# replacements to do in the manifest files
-MANIF_PATHS_SUBS="s|/usr/share/salt/kubernetes/pillar|/tmp/salt/pillar|g; \
-                  s|/usr/share/salt/kubernetes/salt|/tmp/salt/sls|g"
-
 # repository information
 source /etc/os-release
 case $NAME in
@@ -94,7 +85,7 @@ while [ $# -gt 0 ] ; do
       shift
       ;;
     -D|--dashboard)
-      DASHBOARD_REF=$2
+      DASHBOARD_HOST=$2
       shift
       ;;
     --api-server-ip)
@@ -113,6 +104,16 @@ while [ $# -gt 0 ] ; do
 done
 
 ###################################################################
+
+
+# replacements to do in the etcd config
+ETCD_REPL="s|#\?ETCD_LISTEN_PEER_URLS.*|ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380|g; \
+           s|#\?ETCD_LISTEN_CLIENT_URLS.*|ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379|g; \
+           s|#\?ETCD_ADVERTISE_CLIENT_URLS.*|ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379|g"
+
+# replacements to do in the manifest files
+MANIF_PATHS_SUBS="s|/usr/share/salt/kubernetes/pillar|$SALT_ROOT/salt/pillar|g; \
+                  s|/usr/share/salt/kubernetes/salt|$SALT_ROOT/salt/sls|g"
 
 get_container() {
   docker ps | grep $1 | awk '{print $1}'
@@ -246,7 +247,7 @@ if [ -z "$FINISH" ] ; then
 
     log "Setting some Pillars..."
     [ -n "$INFRA"             ] && add_pillar infrastructure "$INFRA"
-    [ -n "$DASHBOARD_REF"     ] && add_pillar dashboard "$DASHBOARD_REF"
+    [ -n "$DASHBOARD_HOST"    ] && add_pillar dashboard "$DASHBOARD_HOST"
     [ -n "$E2E"               ] && add_pillar e2e true
     [ -n "$DOCKER_REG_MIRROR" ] && add_pillar docker_registry_mirror "$DOCKER_REG_MIRROR"
 else

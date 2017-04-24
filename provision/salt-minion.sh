@@ -16,7 +16,7 @@ while [ $# -gt 0 ] ; do
     --debug)
       set -x
       ;;
-    -d|--dashboard-host)
+    -d|--dashboard)
       DASHBOARD_HOST=$2
       shift
       ;;

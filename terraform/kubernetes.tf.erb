@@ -44,6 +44,7 @@
         floating_ip: "dashboard",
         hostname: "dashboard",
         is_dashboard: true,
+        dashboard: fqdn("dashboard"),
         memory: "1024" %>
 <% end %>
 
@@ -87,12 +88,14 @@
 <%= render "inc/volume.inc", name: "minion", count: kube_minions_size, base_id: "base" %>
 <%= render "inc/cloudinit_def.inc", name: "minion", count: kube_minions_size %>
 
+<% minion_deps = enabled?("skip_dashboard") ? [] : ["#{domain_type}.dashboard", "#{domain_type}.master"] %>
+
 <% if enabled?("floating_minions") || enabled?("skip_dashboard") %>
     <%= render "inc/domain.inc",
         name: "minion",
         hostname: "minion",
         role:  "kube-minion",
-        depends_on: enabled?("skip_dashboard") ? [] : ["#{domain_type}.dashboard", "#{domain_type}.master"],
+        depends_on: minion_deps,
         floating_ip: "minion",
         count: kube_minions_size,
         dashboard: dashboard_ref %>
@@ -101,7 +104,7 @@
         name: "minion",
         hostname: "minion",
         role:  "kube-minion",
-        depends_on: enabled?("skip_dashboard") ? [] : ["#{domain_type}.dashboard", "#{domain_type}.master"],
+        depends_on: minion_deps,
         bastion: "dashboard",
         count: kube_minions_size,
         dashboard: dashboard_ref %>

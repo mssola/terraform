@@ -142,7 +142,7 @@ resource "<%= domain_type %>" "<%= name %>" {
                 <%# depending on some variables, we set some flags in the Salt master %>
                 <%# that will be translated to data in the Salt pillar... %>
 
-                <% prov_args  = "--dashboard #{dashboard_ref} --root #{salt_root}" %>
+                <% prov_args  = "--dashboard #{dashboard} --root #{salt_root}" %>
                 <% if exists? "infra" %>
                     <% prov_args  = "#{prov_args} --infra #{infra}" %>
                 <% end %>
@@ -165,7 +165,7 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         provisioner "remote-exec" {
             inline = [
-                <% prov_args  = "--dashboard-host #{dashboard}" %>
+                <% prov_args  = "--dashboard #{dashboard}" %>
                 <% if !enabled?("skip_role_assignments") && !enabled?("skip_dashboard") %>
                   <% prov_args  = "#{prov_args} --role #{role}" %>
                 <% end %>

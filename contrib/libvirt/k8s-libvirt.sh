@@ -143,7 +143,8 @@ if [ $SKIP_ORCHESTRATION == "false" ] && [ $SKIP_DASHBOARD == "false" ]; then
         echo "Execute the following to use this cluster: export KUBECONFIG=$CLUSTER_CONF_DIR/kubeconfig"
     fi
 else
+    local_ip=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
     echo "Cluster is up, but roles are unassigned and no orchestration was launched"
     echo "  Please, start the dashboard locally"
-    echo "  You can now visit http://localhost:3000 and bootstrap the cluster with the dashboard"
+    echo "  You can now visit http://$local_ip:3000 and bootstrap the cluster with the dashboard"
 fi

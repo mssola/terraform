@@ -32,7 +32,7 @@ Some weird things:
   supposed to be on the same directory as your local `k8s-terraform` copy. If
   that's not the case, you can provide the `SALT_PATH` environment variable.
 - The path to the image to be used is taken from the `IMAGE_PATH` environment
-  variable. If this is not defined, an openSUSE image will be downloaded and used.
+  variable. If this is not defined, an SUSE CaaSP image will be downloaded and used.
 - All nodes are given 2GiB of RAM memory by default. We consider this to be a
   good default for regular deployments. You can change that with the
   `MASTER_MEMORY` and `MINION_MEMORY` environment variables.
@@ -40,8 +40,8 @@ Some weird things:
   environment variable.
 - If you want to run the terraform provisioning in debug mode, you can export
   the `TF_DEBUG` environment variable set to any value.
-- By default all images used are openSUSE. This can be tweaked with the
-  `FLAVOUR` environment variable, but for now there are no other supported platforms.
+- By default all images used are SUSE CaaSP. This can be tweaked with the
+  `FLAVOUR` environment variable. The available options are `caasp` and `opensuse`.
 - You can also set `SKIP_ORCHESTRATION` to avoid setting roles to machines and
   to avoid running a orchestration automatically.
 - If you want to completely skip the creation of a dashboard machine you can
@@ -61,14 +61,14 @@ Some weird things:
 This creates a dashboard, a kubernetes-master and 2 minions. It will run the
 orchestration in the dashboard machine, inside the salt-master container. Example:
 
-`FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+`FLAVOUR=caasp MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ### Run a whole cluster skipping orchestration
 
 This creates a dashboard, a kubernetes-master and 2 minions. This will skip the
 role assigning of machines and the orchestration run. Example:
 
-`SKIP_ORCHESTRATION=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+`SKIP_ORCHESTRATION=1 FLAVOUR=caasp MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ### Run a tiny cluster
 
@@ -76,26 +76,26 @@ This creates 2 minions. No dashboard machine will be created, so you will need t
 where the salt-master is running, so those minions will be able to report back to that
 salt-master instance. Example:
 
-`DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+`DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=caasp MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 By default always the latest image will be downloaded. To turn this off just set the `LATEST_IMAGE` ENV
 
-`LATEST_IMAGE=false DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=opensuse MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
+`LATEST_IMAGE=false DASHBOARD_HOST=192.168.X.Y SKIP_DASHBOARD=1 FLAVOUR=caasp MINIONS_SIZE=2 contrib/libvirt/k8s-libvirt.sh apply`
 
 ## Libvirt setup
 
 You need to have the following packages (here's the zypper command-line for it).
 I would recommend taking the packages directly from `Virtualization:containers`
-at the moment. Also I would recommend running this openSUSE Leap:
+at the moment. Also I would recommend running this openSUSE Leap 42.2:
 
 ```
-% zypper ar http://download.opensuse.org/repositories/Virtualization:/containers/openSUSE_Leap_42.1 obs-virtualization-containers
+% zypper ar http://download.opensuse.org/repositories/Virtualization:/containers/openSUSE_Leap_42.2 obs-virtualization-containers
 Adding repository 'obs-virtualization-containers' .......................[done]
 Repository 'obs-virtualization-containers' successfully added
 Enabled     : Yes
 Autorefresh : No
 GPG Check   : Yes
-URI         : http://download.opensuse.org/repositories/Virtualization:/containers/openSUSE_Leap_42.1
+URI         : http://download.opensuse.org/repositories/Virtualization:/containers/openSUSE_Leap_42.2
 % zypper mr --refresh obs-virtualization-containers
 Autorefresh has been enabled for repository 'obs-virtualization-containers'.
 % zypper in libvirt{,-daemon,-client} qemu-kvm terraform{,-provider-libvirt} ruby wget git

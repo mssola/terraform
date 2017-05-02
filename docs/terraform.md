@@ -77,9 +77,9 @@ as for some variables used in our templates.
     you can use the `memory` shortcut. **Note**: this only works for the libvirt
     setup. Support for openstack is still being worked.
 
-  * `docker_reg_mirror`
+  * `docker_reg`
 
-    An (optional) Docker registry mirror (ie, `myserver:5000`). This can be
+    An (optional) Docker registry (ie, `myserver:5000`). This can be
     specially helpful when you intend to download many Docker images and
     bandwidth is scarce.
 

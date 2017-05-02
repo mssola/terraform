@@ -149,8 +149,8 @@ resource "<%= domain_type %>" "<%= name %>" {
                 <% if enabled? "e2e" %>
                     <% prov_args  = "#{prov_args} --e2e" %>
                 <% end %>
-                <% if exists? "docker_reg_mirror" %>
-                    <% prov_args  = "#{prov_args} --docker-reg-mirror #{docker_reg_mirror}" %>
+                <% if exists? "docker_reg" %>
+                    <% prov_args  = "#{prov_args} --docker-reg #{docker_reg}" %>
                 <% end %>
                 "bash /tmp/provision-dashboard.sh <%= prov_args %>",
             ]

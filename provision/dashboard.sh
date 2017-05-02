@@ -8,7 +8,7 @@ DEBUG=
 FINISH=
 E2E=
 INFRA="cloud"
-DOCKER_REG_MIRROR=
+DOCKER_REG=
 CONTAINER_START_TIMEOUT=300
 SALT_ROOT=/tmp
 SALT_ORCH_FLAGS=
@@ -76,8 +76,8 @@ while [ $# -gt 0 ] ; do
       CONFIG_OUT_DIR=$2
       shift
       ;;
-    --docker-reg-mirror)
-      DOCKER_REG_MIRROR=$2
+    --docker-reg)
+      DOCKER_REG=$2
       shift
       ;;
     -i|--infra)
@@ -246,10 +246,10 @@ if [ -z "$FINISH" ] ; then
     exec_in_container "k8s_salt-master" salt-key --delete-all
 
     log "Setting some Pillars..."
-    [ -n "$INFRA"             ] && add_pillar infrastructure "$INFRA"
-    [ -n "$DASHBOARD_HOST"    ] && add_pillar dashboard "$DASHBOARD_HOST"
-    [ -n "$E2E"               ] && add_pillar e2e true
-    [ -n "$DOCKER_REG_MIRROR" ] && add_pillar docker_registry_mirror "$DOCKER_REG_MIRROR"
+    [ -n "$INFRA"          ] && add_pillar infrastructure "$INFRA"
+    [ -n "$DASHBOARD_HOST" ] && add_pillar dashboard "$DASHBOARD_HOST"
+    [ -n "$E2E"            ] && add_pillar e2e true
+    [ -n "$DOCKER_REG"     ] && add_pillar docker:registry "$DOCKER_REG"
 else
     log "Running orchestration on salt master container"
     exec_in_container "k8s_salt-master" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes

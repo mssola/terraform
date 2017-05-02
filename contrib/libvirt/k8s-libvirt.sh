@@ -21,6 +21,7 @@ FLAVOUR=${FLAVOUR:-"caasp"}
 DASHBOARD_HOST=${DASHBOARD_HOST:-}
 SKIP_DASHBOARD=${SKIP_DASHBOARD:-"false"}
 SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
+DOCKER_REGISTRY=${DOCKER_REGISTRY:-}
 
 [ "$SKIP_DASHBOARD" != "false" ] && SKIP_DASHBOARD="true"
 [ "$SKIP_ORCHESTRATION" != "false" ] && SKIP_ORCHESTRATION="true"
@@ -109,6 +110,7 @@ fi
     -V volume_source="$IMAGE_PATH" \
     -V dashboard_host=$DASHBOARD_HOST \
     -V skip_role_assignments=$SKIP_ORCHESTRATION \
+    -V docker_reg=$DOCKER_REGISTRY \
     $1
 
 if [ "$1" != "apply" ]; then

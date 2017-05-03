@@ -23,9 +23,22 @@ SKIP_DASHBOARD=${SKIP_DASHBOARD:-"false"}
 SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-}
 
+## Image Updates
+# Log warning if there is a new image
+CHECK_LATEST_IMAGE=${CHECK_LATEST_IMAGE:-"true"}
+# Prompt to download new image
+PROMPT_LATEST_IMAGE=${PROMPT_LATEST_IMAGE:-"false"}
+# Always download latest image if available
+LATEST_IMAGE=${LATEST_IMAGE:-"true"}
+# Always download image, no matter what is stored locally
+FORCE_IMAGE_REFRESH=${FORCE_IMAGE_REFRESH:-"false"}
+
 [ "$SKIP_DASHBOARD" != "false" ] && SKIP_DASHBOARD="true"
 [ "$SKIP_ORCHESTRATION" != "false" ] && SKIP_ORCHESTRATION="true"
+[ "$CHECK_LATEST_IMAGE" != "false" ] && CHECK_LATEST_IMAGE="true"
+[ "$PROMPT_LATEST_IMAGE" != "false" ] && PROMPT_LATEST_IMAGE="true"
 [ "$LATEST_IMAGE" != "false" ] && LATEST_IMAGE="true"
+[ "$FORCE_IMAGE_REFRESH" != "false" ] && FORCE_IMAGE_REFRESH="true"
 
 SSH_DEFAULT_ARGS="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 
@@ -60,14 +73,62 @@ if [ "$1" == "apply" ]; then
         IMAGE_PATH="${IMAGE_PATH:-$PWD/SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64.qcow2}"
     fi
 
-    if ! [ -f "$IMAGE_PATH" ] || [ "$LATEST_IMAGE" == "true" ]; then
+    NEED_UPDATE=false
+
+    if $CHECK_LATEST_IMAGE; then
+
+        # Get the SHA of the latest file
         if [ "$FLAVOUR" == "opensuse" ]; then
-            echo "[+] Downloading openSUSE qcow2 VM image to '$IMAGE_PATH'"
-            wget -q -O "$IMAGE_PATH" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
+            echo "[+] Downloading openSUSE qcow2 VM image sha to '$IMAGE_PATH.sha256.remote'"
+            wget -q -O "$IMAGE_PATH.sha256.remote" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
         elif [ "$FLAVOUR" == "caasp" ]; then
-            echo "[+] Downloading SUSE CaaSP qcow2 VM image to '$IMAGE_PATH'"
-            wget -q -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2"
-            find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2" -prune -exec mv {} $IMAGE_PATH ';'
+            echo "[+] Downloading SUSE CaaSP qcow2 VM image sha to '$IMAGE_PATH.sha256.remote'"
+            wget -q -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256"
+            find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256" -prune -exec mv {} $IMAGE_PATH.sha256.remote ';'
+        fi
+
+        LOCAL_SHA="$IMAGE_PATH.sha256"
+        REMOTE_SHA="$IMAGE_PATH.sha256.remote"
+
+        # Compare the current local SHA to the remote one
+        cmp --silent $LOCAL_SHA $REMOTE_SHA && NEED_UPDATE=false || NEED_UPDATE=true
+
+    fi
+
+    if $PROMPT_LATEST_IMAGE && $NEED_UPDATE; then
+
+        if which notify-send >/dev/null; then
+            notify-send "There is a new $FLAVOUR image available - should we update?"
+        fi
+        echo "[*] There is a new $FLAVOUR image available - should we update?"
+        read -e -i "y" -p "Do you want to update image? [Y/n] " yn
+        case $yn in
+            [Yy]* ) NEED_UPDATE=true;;
+            [Nn]* ) NEED_UPDATE=false;;
+            * ) echo "Please answer yes (y) or no (n).";;
+        esac
+
+    elif $NEED_UPDATE && $CHECK_LATEST_IMAGE && [[ "$LATEST_IMAGE" == "false" ]]; then
+        if which notify-send >/dev/null; then
+            notify-send "There is a new $FLAVOUR image available."
+        fi
+        echo "[*] There is a new $FLAVOUR image available."
+        NEED_UPDATE=false
+    fi
+
+    if ! [ -f "$IMAGE_PATH" ] || [ "$LATEST_IMAGE" == "true" ]; then
+        if $NEED_UPDATE || $FORCE_IMAGE_REFRESH; then 
+            if [ "$FLAVOUR" == "opensuse" ]; then
+                echo "[+] Downloading openSUSE qcow2 VM image to '$IMAGE_PATH'"
+                wget -O "$IMAGE_PATH" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
+                wget -q -O "$IMAGE_PATH.sha256" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
+            elif [ "$FLAVOUR" == "caasp" ]; then
+                echo "[+] Downloading SUSE CaaSP qcow2 VM image to '$IMAGE_PATH'"
+                wget -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2"
+                wget -q -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256"
+                find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2" -prune -exec mv {} $IMAGE_PATH ';'
+                find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256" -prune -exec mv {} $IMAGE_PATH.sha256 ';'
+            fi
         fi
     else
         if [ "$FLAVOUR" == "opensuse" ]; then

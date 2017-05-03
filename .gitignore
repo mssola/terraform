@@ -12,6 +12,8 @@ k8s-setup.tf
 *.tgz
 
 *.qcow2
+*.sha256
+*.sha256.remote
 /cluster-config/*
 
 *.local

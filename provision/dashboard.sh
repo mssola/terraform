@@ -230,7 +230,6 @@ if [ -z "$FINISH" ] ; then
 
     # Wait for containers to be ready
     wait_for_container "k8s_velum-mariadb"         "mariadb database"
-    wait_for_port $MARIADB_PORT
     wait_for_container "k8s_salt-master"           "salt master"
     wait_for_port $SALT_MASTER_PORT
     wait_for_container "k8s_salt-minion-ca"        "certificate authority"

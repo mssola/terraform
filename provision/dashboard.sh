@@ -10,7 +10,6 @@ E2E=
 INFRA="cloud"
 DOCKER_REG=
 CONTAINER_START_TIMEOUT=300
-SALT_ROOT=/tmp
 SALT_ORCH_FLAGS=
 CONFIG_OUT_DIR=/root
 
@@ -22,7 +21,6 @@ API_SERVER_PORT=6443
 API_SERVER_IP=
 
 # some ports we use for detecting a service is running
-MARIADB_PORT=3306
 SALT_MASTER_PORT=4505
 SALT_API_PORT=8000
 
@@ -61,10 +59,6 @@ while [ $# -gt 0 ] ; do
       ;;
     --color)
       SALT_ORCH_FLAGS="$SALT_ORCH_FLAGS --force-color"
-      ;;
-    -r|--root)
-      SALT_ROOT=$2
-      shift
       ;;
     -F|--finish)
       FINISH=1
@@ -110,10 +104,6 @@ done
 ETCD_REPL="s|#\?ETCD_LISTEN_PEER_URLS.*|ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380|g; \
            s|#\?ETCD_LISTEN_CLIENT_URLS.*|ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379|g; \
            s|#\?ETCD_ADVERTISE_CLIENT_URLS.*|ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379|g"
-
-# replacements to do in the manifest files
-MANIF_PATHS_SUBS="s|/usr/share/salt/kubernetes/pillar|$SALT_ROOT/salt/pillar|g; \
-                  s|/usr/share/salt/kubernetes/salt|$SALT_ROOT/salt/sls|g"
 
 get_container() {
   docker ps | grep $1 | awk '{print $1}'
@@ -174,8 +164,8 @@ get_ip_for() {
 service_exist()   { systemctl list-unit-files | grep -q "$1.service" &> /dev/null ; }
 service_running() { systemctl status $1 | grep -q running &> /dev/null ; }
 
-replace_in_manifest() { sed -e "$MANIF_PATHS_SUBS" "$1" > "$2" ; }
-replace_in_etcd()     { sed -e "$ETCD_REPL"     "$1" > "$2" ; }
+copy_manifest() { cp "$1" "$2" ; }
+copy_etcd_cfg() { sed -e "$ETCD_REPL"  "$1" > "$2" ; }
 
 ###################################################################
 
@@ -198,17 +188,17 @@ if [ -z "$FINISH" ] ; then
         ;;
     esac
 
-    log "Copying kubelet manifests (with replacements)"
+    log "Copying kubelet manifests"
     service_running "kubelet" && systemctl stop kubelet
     for f in $K8S_MANIFESTS_IN/*.yaml ; do
       proc_manif="$K8S_MANIFESTS_OUT/$(basename $f)"
       log "... generating $proc_manif"
-      replace_in_manifest "$f" "$proc_manif"
+      copy_manifest "$f" "$proc_manif"
     done
 
     log "Tweaking etcd config"
     service_running "etcd" && systemctl stop etcd
-    replace_in_etcd /etc/sysconfig/etcd /etc/sysconfig/etcd.new && mv /etc/sysconfig/etcd.new /etc/sysconfig/etcd
+    copy_etcd_cfg /etc/sysconfig/etcd /etc/sysconfig/etcd.new && mv /etc/sysconfig/etcd.new /etc/sysconfig/etcd
 
     log "Starting services..."
     for srv in $DASHBOARD_SERVICES ; do

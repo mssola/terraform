@@ -4,7 +4,7 @@
 
         resource "openstack_compute_floatingip_v2" "fip_<%= name %>" {
             <% if exists? "count" %>
-                count            = <%= count %>
+                count = <%= count %>
             <% end %>
             pool = "floating"
         }
@@ -115,26 +115,31 @@ resource "<%= domain_type %>" "<%= name %>" {
 
     <% if enabled? "is_dashboard" %>
 
+        <% if enabled? "rw" or exists? "salt_dir" %>
+
+            # make the whole filesystem RW
+            provisioner "remote-exec" {
+                inline = [
+                    "btrfs property set -ts /.snapshots/1/snapshot ro false",
+                    "mount -o remount,rw /",
+                ]
+            }
+
+        <% end %>
+
+        <% if exists? "salt_dir" %>
+
+            # copy the local Salt scripts/pillar/etc
+            provisioner "file" {
+                source      = "<%= salt_dir %>"
+                destination = "/usr/share/salt/kubernetes"
+            }
+
+        <% end %>
+
         provisioner "file" {
             source      = "<%= tf_dir %>/provision/dashboard.sh"
             destination = "/tmp/provision-dashboard.sh"
-        }
-
-        # we must copy the Salt pillar and states to a RW directory in the VM
-        provisioner "remote-exec" {
-            inline = [
-                "mkdir -p <%= salt_root %>/salt",
-            ]
-        }
-
-        provisioner "file" {
-            source      = "<%= salt_dir %>/salt"
-            destination = "<%= salt_root %>/salt/sls"
-        }
-
-        provisioner "file" {
-            source      = "<%= salt_dir %>/pillar"
-            destination = "<%= salt_root %>/salt/pillar"
         }
 
         provisioner "remote-exec" {
@@ -142,7 +147,7 @@ resource "<%= domain_type %>" "<%= name %>" {
                 <%# depending on some variables, we set some flags in the Salt master %>
                 <%# that will be translated to data in the Salt pillar... %>
 
-                <% prov_args  = "--dashboard #{dashboard} --root #{salt_root}" %>
+                <% prov_args  = "--dashboard #{dashboard}" %>
                 <% if exists? "infra" %>
                     <% prov_args  = "#{prov_args} --infra #{infra}" %>
                 <% end %>
@@ -172,6 +177,21 @@ resource "<%= domain_type %>" "<%= name %>" {
                 "bash /tmp/provision-salt-minion.sh <%= prov_args %>",
             ]
         }
+
+        <% if enabled? "rw" %>
+
+            # make the whole filesystem RW
+            # do this _after_ running the provisioning just to be
+            # sure do not try to write something we shouldn't
+            # from provision-salt-minion.sh
+            provisioner "remote-exec" {
+                inline = [
+                    "btrfs property set -ts /.snapshots/1/snapshot ro false",
+                    "mount -o remount,rw /",
+                ]
+            }
+
+        <% end %>
 
     <% end %>
 

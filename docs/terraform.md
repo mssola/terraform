@@ -25,13 +25,13 @@ as for some variables used in our templates.
 
 ### Main variables
 
-  * `salt_dir`
+  * `salt_dir` _(optional)_
 
     The directory where the Salt scripts are (`/usr/share/salt/kubernetes`
     when installing the `kubernetes-salt` RPM, or a checkout of [this
-    repo](https://github.com/kubic-project/salt))
+    repo](https://github.com/kubic-project/salt)).
 
-  * `ssh_key`
+  * `ssh_key` _(optional)_
 
     `ssh_key` is the key we will use for accessing machines (by default,
     the `id_docker` in the local `ssh` directory)
@@ -45,23 +45,23 @@ as for some variables used in our templates.
     This can be solved by setting the `cluster_prefix` variable to something like
     `flavio-`.
 
-  * `cluster_domain_name`
+  * `cluster_domain_name` _(optional)_
 
     The cluster default domain name. It can be something like `k8s.local`. This
     domain name will be used across all the instances.
 
-  * `kube_minions_size`
+  * `kube_minions_size` _(optional)_
 
     By default the k8s cluster has 3 k8s minions. However it's possible to
     change the default value by using the `kube_minions_size` variable.
 
-  * `bridge`
+  * `bridge` _(optional)_
 
     Name of the bridge interface to use when creating the nodes. This is useful
     when the libvirt host is a remote machine different from the one running
     terraform.
 
-  * `<component name>_memory`
+  * `<component name>_memory` _(optional)_
 
     The amount of memory to be assigned to the given component in MB. Possible
     options for components are: `master`, `minion` and `dashboard`. The default value
@@ -69,7 +69,7 @@ as for some variables used in our templates.
     you can use the `memory` shortcut. **Note**: this only works for the libvirt
     setup. Support for openstack is still being worked.
 
-  * `<component name>_cpus`
+  * `<component name>_cpus` _(optional)_
 
     The number of vcpus to be assigned to the given component. Possible
     options for components are: `master`, `minion` and `dashboard`. The default value
@@ -77,23 +77,26 @@ as for some variables used in our templates.
     you can use the `memory` shortcut. **Note**: this only works for the libvirt
     setup. Support for openstack is still being worked.
 
-  * `docker_reg`
+  * `docker_reg` _(optional)_
 
     An (optional) Docker registry (ie, `myserver:5000`). This can be
     specially helpful when you intend to download many Docker images and
     bandwidth is scarce.
 
+  * `rw` _(optional)_
+
+    Make the whole filesystem read-writeable.
 
 ### Controlling the Cluster created
 
 There are some special variables that are used for controlling
 the environment that will be created by Terraform.
 
-  * `skip_dashboard`
+  * `skip_dashboard` _(optional)_
 
     Do not try to create a Dashboard machine.
 
-  * `skip_role_assignments`
+  * `skip_role_assignments` _(optional)_
 
     Do not try to assign roles to machines from Terraform. By default, we
     create one kubernetes master and `kube_minions_size` minions, and

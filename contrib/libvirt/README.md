@@ -26,7 +26,7 @@ Some weird things:
 
 `k8s-setup` is called with the following flags:
 
-- The `salt_dir` points to a local copy of
+- The `salt_dir` can be used for pointing to a local copy of
   [kubic-project/salt](https://github.com/kubic-project/salt). This is helpful if you are
   also messing with the `kubic-project/salt` repository. The local copy of `kubic-project/salt` is
   supposed to be on the same directory as your local `k8s-terraform` copy. If

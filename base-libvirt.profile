@@ -8,9 +8,6 @@ cluster_prefix = ""
 # Use it to define a cluster domain name
 cluster_domain_name = "k8s.local"
 
-# the directory where we hold our Salt files
-salt_dir = ?
-
 # ssh key file (note: a .pub file must also exist)
 ssh_key = "ssh/id_docker"
 

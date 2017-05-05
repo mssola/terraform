@@ -120,11 +120,11 @@ if [ "$1" == "apply" ]; then
         if $NEED_UPDATE || $FORCE_IMAGE_REFRESH; then 
             if [ "$FLAVOUR" == "opensuse" ]; then
                 echo "[+] Downloading openSUSE qcow2 VM image to '$IMAGE_PATH'"
-                wget -O "$IMAGE_PATH" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
+                wget -q -O "$IMAGE_PATH" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
                 wget -q -O "$IMAGE_PATH.sha256" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
             elif [ "$FLAVOUR" == "caasp" ]; then
                 echo "[+] Downloading SUSE CaaSP qcow2 VM image to '$IMAGE_PATH'"
-                wget -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2"
+                wget -q -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2"
                 wget -q -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256"
                 find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2" -prune -exec mv {} $IMAGE_PATH ';'
                 find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256" -prune -exec mv {} $IMAGE_PATH.sha256 ';'

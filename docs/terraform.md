@@ -25,12 +25,6 @@ as for some variables used in our templates.
 
 ### Main variables
 
-  * `salt_dir` _(optional)_
-
-    The directory where the Salt scripts are (`/usr/share/salt/kubernetes`
-    when installing the `kubernetes-salt` RPM, or a checkout of [this
-    repo](https://github.com/kubic-project/salt)).
-
   * `ssh_key` _(optional)_
 
     `ssh_key` is the key we will use for accessing machines (by default,
@@ -83,9 +77,27 @@ as for some variables used in our templates.
     specially helpful when you intend to download many Docker images and
     bandwidth is scarce.
 
+### Development variables
+
+Some variables are specially useful for developers (for example, for trying
+new stuff in local checkouts of repos)
+
+  * `salt_dir` _(optional)_
+
+    A directory with a _checkout_ of the [the Salt repo](https://github.com/kubic-project/salt).
+    It will be copied to `/usr/share/salt/kubernetes` in the VMs'
+    filesystems.
+
+  * `manifests_dir` _(optional)_
+
+    A directory with a _checkout_ of [the manifests repo](https://github.com/kubic-project/caasp-container-manifests).
+    It will be copied to `/usr/share/caasp-container-manifests` in the VMs'
+    filesystems.
+
   * `rw` _(optional)_
 
-    Make the whole filesystem read-writeable.
+    Make the whole filesystem read-writeable (enabled automatically
+    when `salt_dir` or `manifests_dir` have been provided)
 
 ### Controlling the Cluster created
 

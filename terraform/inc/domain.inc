@@ -115,7 +115,7 @@ resource "<%= domain_type %>" "<%= name %>" {
 
     <% if enabled? "is_dashboard" %>
 
-        <% if enabled? "rw" or exists? "salt_dir" %>
+        <% if enabled? "rw" or exists? "salt_dir" or exists? "manifests_dir" %>
 
             # make the whole filesystem RW
             provisioner "remote-exec" {
@@ -133,6 +133,16 @@ resource "<%= domain_type %>" "<%= name %>" {
             provisioner "file" {
                 source      = "<%= salt_dir %>"
                 destination = "/usr/share/salt/kubernetes"
+            }
+
+        <% end %>
+
+        <% if exists? "manifests_dir" %>
+
+            # copy the manifests
+            provisioner "file" {
+                source      = "<%= manifests_dir %>"
+                destination = "/usr/share/caasp-container-manifests"
             }
 
         <% end %>

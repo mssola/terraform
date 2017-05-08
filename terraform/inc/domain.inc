@@ -129,6 +129,12 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         <% if exists? "salt_dir" %>
 
+            provisioner "remote-exec" {
+                inline = [
+                    "rm -rf /usr/share/salt/kubernetes",
+                ]
+            }
+
             # copy the local Salt scripts/pillar/etc
             provisioner "file" {
                 source      = "<%= salt_dir %>"
@@ -138,6 +144,12 @@ resource "<%= domain_type %>" "<%= name %>" {
         <% end %>
 
         <% if exists? "manifests_dir" %>
+
+            provisioner "remote-exec" {
+                inline = [
+                    "rm -rf /usr/share/caasp-container-manifests",
+                ]
+            }
 
             # copy the manifests
             provisioner "file" {

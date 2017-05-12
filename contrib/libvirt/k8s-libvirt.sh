@@ -150,6 +150,12 @@ else
     profile="libvirt-obs.profile"
 fi
 
+if [ "$SKIP_DASHBOARD" != "false" ] && [ -z $DASHBOARD_HOST ]; then
+    default_interface=$(awk '$2 == 00000000 { print $1 }' /proc/net/route)
+    DASHBOARD_HOST=$(ip addr show $default_interface | awk '$1 == "inet" {print $2}' | cut -f1 -d/)
+    echo "Defaulting DASHBOARD_HOST to $DASHBOARD_HOST"
+fi
+
 [ -n "$TF_DEBUG" ] && export TF_LOG=debug
 [ -n "$FORCE" ] && force="--force"
 

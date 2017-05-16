@@ -179,6 +179,9 @@ resource "<%= domain_type %>" "<%= name %>" {
                 <% if exists? "docker_reg" %>
                     <% prov_args  = "#{prov_args} --docker-reg #{docker_reg}" %>
                 <% end %>
+                <% if exists? "pillar" %>
+                    <% prov_args  = "#{prov_args} --pillar #{pillar}" %>
+                <% end %>
                 "bash /tmp/provision-dashboard.sh <%= prov_args %>",
             ]
         }

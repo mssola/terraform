@@ -99,6 +99,13 @@ new stuff in local checkouts of repos)
     Make the whole filesystem read-writeable (enabled automatically
     when `salt_dir` or `manifests_dir` have been provided)
 
+  * `pillar` _(optional)_
+
+    comma-separated list of Salt pillar assignments, using `~` instead of `=`
+    for the assignment. Example: `etcd.master~1,api.cluster_ip~172.21.0.1`
+    (note that specifying the same key several times will concatenate
+    the value as a list)
+
 ### Controlling the Cluster created
 
 There are some special variables that are used for controlling

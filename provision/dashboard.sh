@@ -36,6 +36,10 @@ DASHBOARD_SERVICES="docker container-feeder kubelet etcd"
 ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
 SSH_GLOBAL_ARGS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
+# comma-separated list of pillar assignments (with ~ as =), like
+# etcd.master~1,api.cluster_ip~172.21.0.1
+PILLAR=
+
 ########################################################################
 
 # repository information
@@ -90,6 +94,10 @@ while [ $# -gt 0 ] ; do
       API_SERVER_DNS_NAME=$2
       shift
       ;;
+    -P|--pillar)
+      PILLAR=$2
+      shift
+      ;;
     *)
       abort "Unknown argument $1"
       ;;
@@ -140,6 +148,12 @@ add_pillar() {
   log "Pillar: setting $1=\"$2\""
   exec_in_container "k8s_velum-dashboard" \
     bundle exec rails runner "Pillar.create pillar: \"$1\", value: \"$2\""
+}
+
+add_pillar_from_lst() {
+  for x in `echo "$1" | tr ',' ' '` ; do
+    add_pillar "${x%~*}" "${x#*~}"
+  done
 }
 
 tcp_port_open() {
@@ -251,6 +265,7 @@ if [ -z "$FINISH" ] ; then
     [ -n "$DASHBOARD_HOST" ] && add_pillar dashboard "$DASHBOARD_HOST"
     [ -n "$E2E"            ] && add_pillar e2e true
     [ -n "$DOCKER_REG"     ] && add_pillar docker:registry "$DOCKER_REG"
+    add_pillar_from_lst "$PILLAR"
 else
     log "Running orchestration on salt master container"
     exec_in_container "k8s_salt-master" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes

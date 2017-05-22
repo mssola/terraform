@@ -102,7 +102,7 @@ new stuff in local checkouts of repos)
   * `pillar` _(optional)_
 
     comma-separated list of Salt pillar assignments, using `~` instead of `=`
-    for the assignment. Example: `etcd.master~1,api.cluster_ip~172.21.0.1`
+    for the assignment. Example: `etcd:master~1,api:cluster_ip~172.21.0.1`
     (note that specifying the same key several times will concatenate
     the value as a list)
 

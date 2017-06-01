@@ -66,7 +66,8 @@ fi
 
 OLD_IP=$($VIRSH net-dumpxml "$NETWORK" | grep "$HOSTNAME" | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}')
 if [ -z "$OLD_IP" ] ; then
-	echo "Could not find an IP address for $HOSTNAME"
+	echo "Could not find an IP address for $HOSTNAME in"
+	$VIRSH net-dumpxml "$NETWORK"
 	exit 1
 fi
 echo "Old IP: $OLD_IP"

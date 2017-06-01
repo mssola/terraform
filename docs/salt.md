@@ -14,7 +14,7 @@ the following `ssh` command:
 
 ```
 $ ssh -i ssh/id_docker root@`terraform output ip_dashboard` \
-         bash /tmp/salt/provision-dashboard.sh --finish
+         bash /tmp/provision/admin/provision.sh --finish
 ```
 
 After the orchestration you will find an environment like this:

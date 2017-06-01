@@ -40,6 +40,10 @@ SSH_GLOBAL_ARGS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 # etcd.master~1,api.cluster_ip~172.21.0.1
 PILLAR=
 
+# the dashboard references
+DASHBOARD_HOST=dashboard
+DASHBOARD_IP=
+
 ########################################################################
 
 # repository information
@@ -107,11 +111,9 @@ done
 
 ###################################################################
 
-
-# replacements to do in the etcd config
-ETCD_REPL="s|#\?ETCD_LISTEN_PEER_URLS.*|ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380|g; \
-           s|#\?ETCD_LISTEN_CLIENT_URLS.*|ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379|g; \
-           s|#\?ETCD_ADVERTISE_CLIENT_URLS.*|ETCD_ADVERTISE_CLIENT_URLS=http://dashboard:2379|g"
+get_ip_for() {
+  getent hosts "$1" | cut -f1 -d" "
+}
 
 get_container() {
   docker ps | grep $1 | awk '{print $1}'
@@ -182,15 +184,19 @@ wait_for_socket() {
   done
 }
 
-get_ip_for() {
-  getent hosts "$1" | cut -f1 -d" "
-}
-
 service_exist()   { systemctl list-unit-files | grep -q "$1.service" &> /dev/null ; }
 service_running() { systemctl status $1 | grep -q running &> /dev/null ; }
 
+DASHBOARD_IP=$(get_ip_for "$DASHBOARD_HOST")
+DASHBOARD_REF=${DASHBOARD_IP:-$DASHBOARD_HOST}
+
 copy_manifest() { cp "$1" "$2" ; }
-copy_etcd_cfg() { sed -e "$ETCD_REPL"  "$1" > "$2" ; }
+copy_etcd_cfg() {
+  ETCD_REPL="s|#\?ETCD_LISTEN_PEER_URLS.*|ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380|g; \
+             s|#\?ETCD_LISTEN_CLIENT_URLS.*|ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379|g; \
+             s|#\?ETCD_ADVERTISE_CLIENT_URLS.*|ETCD_ADVERTISE_CLIENT_URLS=http://$DASHBOARD_REF:2379|g"
+  sed -e "$ETCD_REPL"  "$1" > "$2"
+}
 
 ###################################################################
 
@@ -228,7 +234,10 @@ if [ -z "$FINISH" ] ; then
     log "Generate certificates for salt-api and velum"
     log "WARNING!!! This is part activate.sh script,"
     log "which is not run by terraform deployment"
-    /usr/share/caasp-container-manifests/gen-certs.sh    
+    /usr/share/caasp-container-manifests/gen-certs.sh
+
+    # run (optional) local script before services are started
+    [ -f $0.local ] && sh $0.local
 
     log "Starting services..."
     for srv in $DASHBOARD_SERVICES ; do
@@ -267,7 +276,7 @@ if [ -z "$FINISH" ] ; then
 
     log "Setting some Pillars..."
     [ -n "$INFRA"          ] && add_pillar infrastructure "$INFRA"
-    [ -n "$DASHBOARD_HOST" ] && add_pillar dashboard "$DASHBOARD_HOST"
+    [ -n "$DASHBOARD_REF"  ] && add_pillar dashboard "$DASHBOARD_REF"
     [ -n "$E2E"            ] && add_pillar e2e true
     [ -n "$DOCKER_REG"     ] && add_pillar docker:registry "$DOCKER_REG"
     add_pillar_from_lst "$PILLAR"

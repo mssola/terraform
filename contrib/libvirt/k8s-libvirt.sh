@@ -213,7 +213,7 @@ if [ $SKIP_ORCHESTRATION == "false" ] && [ $SKIP_DASHBOARD == "false" ]; then
     ssh -i ssh/id_docker \
         $SSH_DEFAULT_ARGS \
         root@`terraform output ip_dashboard` \
-        bash /tmp/provision-dashboard.sh --finish
+        bash /tmp/provision/admin/provision.sh --finish
 
     mkdir -p "$CLUSTER_CONF_DIR"
     scp -i ssh/id_docker \

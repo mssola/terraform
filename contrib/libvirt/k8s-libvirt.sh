@@ -24,6 +24,8 @@ SKIP_ORCHESTRATION=${SKIP_ORCHESTRATION:-"false"}
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-}
 
 ## Image Updates
+# Use the staging image or not
+USE_STAGING_IMAGE=${USE_STAGING_IMAGE:-"true"}
 # Log warning if there is a new image
 CHECK_LATEST_IMAGE=${CHECK_LATEST_IMAGE:-"true"}
 # Prompt to download new image
@@ -35,6 +37,7 @@ FORCE_IMAGE_REFRESH=${FORCE_IMAGE_REFRESH:-"false"}
 
 [ "$SKIP_DASHBOARD" != "false" ] && SKIP_DASHBOARD="true"
 [ "$SKIP_ORCHESTRATION" != "false" ] && SKIP_ORCHESTRATION="true"
+[ "$USE_STAGING_IMAGE" != "false" ] && USE_STAGING_IMAGE="true"
 [ "$CHECK_LATEST_IMAGE" != "false" ] && CHECK_LATEST_IMAGE="true"
 [ "$PROMPT_LATEST_IMAGE" != "false" ] && PROMPT_LATEST_IMAGE="true"
 [ "$LATEST_IMAGE" != "false" ] && LATEST_IMAGE="true"
@@ -55,6 +58,13 @@ if [ ! -z ${PREFIX+x} ]; then
   prefix="$PREFIX"
 elif [ "$prefix" = "" ]; then
   prefix="$USER"
+fi
+
+# Select the correct CaaSP base URL
+if [ "$USE_STAGING_IMAGE" == "true" ] && [ "$FLAVOUR" == "caasp" ]; then
+    CAASP_IMAGE_BASE_URL="http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10:/Staging:/A/images/"
+else
+    CAASP_IMAGE_BASE_URL="http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/"
 fi
 
 if [ "$1" == "apply" ]; then
@@ -83,7 +93,7 @@ if [ "$1" == "apply" ]; then
             wget -q -O "$IMAGE_PATH.sha256.remote" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
         elif [ "$FLAVOUR" == "caasp" ]; then
             echo "[+] Downloading SUSE CaaSP qcow2 VM image sha to '$IMAGE_PATH.sha256.remote'"
-            wget -q -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256"
+            wget -q -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256"
             find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256" -prune -exec mv {} $IMAGE_PATH.sha256.remote ';'
         fi
 
@@ -124,8 +134,8 @@ if [ "$1" == "apply" ]; then
                 wget -q -O "$IMAGE_PATH.sha256" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
             elif [ "$FLAVOUR" == "caasp" ]; then
                 echo "[+] Downloading SUSE CaaSP qcow2 VM image to '$IMAGE_PATH'"
-                wget -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2"
-                wget -q -r -l1 -nd -N "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/CASP10/images/" -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256"
+                wget -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2"
+                wget -q -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256"
                 find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2" -prune -exec mv {} $IMAGE_PATH ';'
                 find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256" -prune -exec mv {} $IMAGE_PATH.sha256 ';'
             fi

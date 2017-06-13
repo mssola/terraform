@@ -13,6 +13,8 @@ CONTAINER_START_TIMEOUT=300
 SALT_ORCH_FLAGS=
 CONFIG_OUT_DIR=/root
 
+VELUM_DB="velum_production"
+
 # the hostname and port where the API server will be listening at
 API_SERVER_DNS_NAME="master"
 API_SERVER_PORT=6443
@@ -149,7 +151,7 @@ copy_from_container() {
 add_pillar() {
   log "Pillar: setting $1=\"$2\""
   exec_in_container "k8s_velum-dashboard" \
-    bundle exec rails runner "Pillar.create pillar: \"$1\", value: \"$2\""
+    entrypoint.sh bundle exec rails runner "Pillar.create pillar: \"$1\", value: \"$2\""
 }
 
 add_pillar_from_lst() {
@@ -184,6 +186,20 @@ wait_for_socket() {
   done
 }
 
+wait_for_db() {
+  local db=$1
+  local count=0
+  until exec_in_container "velum-mariadb" \
+    bash -c 'mysql -uroot -p`cat /var/lib/misc/infra-secrets/mariadb-root-password` -e "show databases"' | \
+    grep "$1" &>/dev/null ; do
+      log "(waiting for database $db...)"
+      sleep 5
+      [ "$count" -gt "$CONTAINER_START_TIMEOUT" ] && abort "timeout waiting for database $db"
+      count=$((count+5))
+  done
+  sleep 30
+}
+
 service_exist()   { systemctl list-unit-files | grep -q "$1.service" &> /dev/null ; }
 service_running() { systemctl status $1 | grep -q running &> /dev/null ; }
 
@@ -204,6 +220,8 @@ if [ -z "$FINISH" ] ; then
     log "Fixing the ssh keys permissions and setting the authorized keys"
     chmod 600 /root/.ssh/*
     cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
+
+    chmod 755 `find $K8S_MANIFESTS_IN -name '*.sh'`
 
     case $NAME in
       "CAASP")
@@ -268,11 +286,10 @@ if [ -z "$FINISH" ] ; then
     wait_for_container "k8s_velum-dashboard"       "velum dashboard"
     wait_for_container "k8s_velum-event-processor" "events processor"
 
-    log "Setting up the database on velum container"
-    exec_in_container "k8s_velum-dashboard" rake db:setup
-
     log "Removing all Salt keys in the master"
     exec_in_container "k8s_salt-master" salt-key -y --delete-all
+
+    wait_for_db "$VELUM_DB"
 
     log "Setting some Pillars..."
     [ -n "$INFRA"          ] && add_pillar infrastructure "$INFRA"

@@ -275,6 +275,7 @@ end
 
 if !ARGV.empty?
     cmd = ([terraform_path] + ARGV + $vars["force"].to_a).map(&:strip).join(" ")
+    cmd += " -parallelism=1"
     debug("running: '#{cmd}'")
     Dir.chdir($vars["work_dir"])
     exec(cmd)

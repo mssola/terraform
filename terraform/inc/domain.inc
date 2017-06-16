@@ -79,6 +79,11 @@ resource "<%= domain_type %>" "<%= name %>" {
             firmware = "<%= firmware %>"
         <% end %>
 
+        graphics {
+          type        = "vnc"
+          listen_type = "address"
+        }
+
     <% elsif provider == "openstack" %>
 
         <% if exists? "#{name}_flavor" %>

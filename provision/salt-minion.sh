@@ -39,6 +39,7 @@ service_running() { systemctl status $1 | grep -q running &> /dev/null ; }
 set_salt_master() {
     log "Setting Salt master to $1"
     echo "master: $1" > "/etc/salt/minion.d/minion.conf"
+    echo "grains_refresh_every: 10" > "/etc/salt/minion.d/grains_refresh.conf"
 }
 
 set_roles() {

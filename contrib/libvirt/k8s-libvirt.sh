@@ -33,6 +33,8 @@ PROMPT_LATEST_IMAGE=${PROMPT_LATEST_IMAGE:-"false"}
 LATEST_IMAGE=${LATEST_IMAGE:-"true"}
 # Always download image, no matter what is stored locally
 FORCE_IMAGE_REFRESH=${FORCE_IMAGE_REFRESH:-"false"}
+# Set additional wget flags (e.g. verbosity)
+WGET_FLAGS=${WGET_FLAGS:-""}
 
 [ "$SKIP_DASHBOARD" != "false" ] && SKIP_DASHBOARD="true"
 [ "$SKIP_ORCHESTRATION" != "false" ] && SKIP_ORCHESTRATION="true"
@@ -97,10 +99,10 @@ if [ "$1" == "apply" ]; then
         # Get the SHA of the latest file
         if [ "$FLAVOUR" == "opensuse" ]; then
             echo "[+] Downloading openSUSE qcow2 VM image sha to '$IMAGE_PATH.sha256.remote'"
-            wget -q -O "$IMAGE_PATH.sha256.remote" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
+            wget $WGET_FLAGS -O "$IMAGE_PATH.sha256.remote" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
         elif [ "$FLAVOUR" == "caasp" ]; then
             echo "[+] Downloading SUSE CaaSP qcow2 VM image sha to '$IMAGE_PATH.sha256.remote'"
-            wget -q -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-*qcow2.sha256"
+            wget $WGET_FLAGS -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-*qcow2.sha256"
             find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256" -prune -exec mv {} $IMAGE_PATH.sha256.remote ';'
         fi
 
@@ -137,12 +139,12 @@ if [ "$1" == "apply" ]; then
         if $NEED_UPDATE || $FORCE_IMAGE_REFRESH; then 
             if [ "$FLAVOUR" == "opensuse" ]; then
                 echo "[+] Downloading openSUSE qcow2 VM image to '$IMAGE_PATH'"
-                wget -O "$IMAGE_PATH" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
-                wget -q -O "$IMAGE_PATH.sha256" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
+                wget $WGET_FLAGS -O "$IMAGE_PATH" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2"
+                wget $WGET_FLAGS -O "$IMAGE_PATH.sha256" -N "http://download.opensuse.org/repositories/Virtualization:/containers:/images:/KVM:/Leap:/42.2/images/Base-openSUSE-Leap-42.2.x86_64-cloud_ext4.qcow2.sha256"
             elif [ "$FLAVOUR" == "caasp" ]; then
                 echo "[+] Downloading SUSE CaaSP qcow2 VM image to '$IMAGE_PATH'"
-                wget -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-*qcow2"
-                wget -q -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-*qcow2.sha256"
+                wget $WGET_FLAGS -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-*qcow2"
+                wget $WGET_FLAGS -r -l1 -nd -N $CAASP_IMAGE_BASE_URL -P /tmp/CaaSP -A "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64-*qcow2.sha256"
                 find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2" -prune -exec mv {} $IMAGE_PATH ';'
                 find /tmp/CaaSP -name "SUSE-CaaS-Platform-1.0-KVM-and-Xen.x86_64*qcow2.sha256" -prune -exec mv {} $IMAGE_PATH.sha256 ';'
             fi

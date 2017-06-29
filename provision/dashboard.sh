@@ -267,6 +267,9 @@ if [ -z "$FINISH" ] ; then
     [ -n "$DOCKER_REG"     ] && add_pillar docker:registry "$DOCKER_REG"
     add_pillar_from_lst "$PILLAR"
 else
+    log "Accept all Salt keys in the master"
+    exec_in_container "k8s_salt-master" salt-key -A -y
+
     log "Running orchestration on salt master container"
     exec_in_container "k8s_salt-master" salt-run $SALT_ORCH_FLAGS state.orchestrate orch.kubernetes
 

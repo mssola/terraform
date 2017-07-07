@@ -31,8 +31,8 @@ K8S_MANIFESTS_IN="/usr/share/caasp-container-manifests"
 K8S_MANIFESTS_OUT="/etc/kubernetes/manifests"
 
 # rpms and services neccessary in the dashboard
-DASHBOARD_RPMS="kubernetes-kubelet etcd"
-DASHBOARD_SERVICES="docker container-feeder kubelet etcd"
+DASHBOARD_RPMS="kubernetes-kubelet etcd salt-minion"
+DASHBOARD_SERVICES="docker container-feeder kubelet etcd salt-minion"
 
 # global args for running zypper and ssh/scp
 ZYPPER_GLOBAL_ARGS="-n --no-gpg-checks --quiet --no-color"
@@ -216,10 +216,42 @@ copy_etcd_cfg() {
 
 ###################################################################
 
+set_salt_master() {
+    log "Setting Salt master to $1"
+    cat <<EOF > /etc/salt/minion.d/minion.conf
+id: admin
+master: $1
+EOF
+
+    # This takes preference over /etc/salt/minion.d/minion.conf, so let's also
+    # test it here, just in case.
+    echo "id: admin" > /etc/salt/minion.d/minion_id.conf
+}
+
+###################################################################
+
 if [ -z "$FINISH" ] ; then
     log "Fixing the ssh keys permissions and setting the authorized keys"
     chmod 600 /root/.ssh/*
     cp -f /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
+
+    if [ -n "$DASHBOARD_IP" ] ; then
+        log "Hardcoding dashboard IP"
+        echo "$DASHBOARD_IP dashboard $DASHBOARD_HOST" >> /etc/hosts
+    fi
+
+    # Set the Salt master
+    if   [ -n "$DASHBOARD_HOST" ] ; then set_salt_master "$DASHBOARD_HOST"
+    elif [ -n "$DASHBOARD_IP"   ] ; then set_salt_master "$DASHBOARD_IP"
+    else                                 set_salt_master "dashboard"
+    fi
+
+    # Set admin role.
+    log "Setting admin role"
+    cat <<EOF > /etc/salt/grains
+roles:
+- admin
+EOF
 
     chmod 755 `find $K8S_MANIFESTS_IN -name '*.sh'`
 

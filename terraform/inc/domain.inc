@@ -44,11 +44,13 @@ resource "<%= domain_type %>" "<%= name %>" {
 
         count            = <%= count %>
         name             = "<%= full_name %>"
+        metadata         = "<%= full_hostname %>,${count.index}"
     <% else %>
         <% full_name     = "#{cluster_prefix}_#{name}" %>
         <% full_hostname = fqdn(hostname) %>
 
         name             = "<%= full_name %>"
+        metadata         = "<%= full_hostname %>"
     <% end %>
 
     <% if exists? "depends_on" %>
